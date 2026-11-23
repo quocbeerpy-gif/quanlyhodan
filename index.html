@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Quản Lý Hộ Dân</title>
+<style>
+:root{--bg:#f3f7f4;--card:#fff;--tx:#1b2a22;--mu:#6a7b72;--pr:#16a34a;--pr2:#dcfce7;--bd:#e1e8e3;--dn:#dc2626;--wn:#d97706;--in:#2563eb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1612;--card:#17221c;--tx:#e6efe9;--mu:#92a49a;--pr2:#15301f;--bd:#26372d}}
+:root[data-theme="dark"]{--bg:#0e1612;--card:#17221c;--tx:#e6efe9;--mu:#92a49a;--pr2:#15301f;--bd:#26372d}
+*{box-sizing:border-box}html,body{margin:0}body{font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx)}
+aside{position:fixed;inset:0 auto 0 0;width:250px;background:var(--card);border-right:1px solid var(--bd);padding:16px 10px;overflow:auto;z-index:20;transition:.25s;padding-top:calc(16px + env(safe-area-inset-top,0px))}
+.logo{font-weight:800;font-size:17px;padding:4px 10px 14px;color:var(--pr)}
+aside a{display:flex;gap:12px;align-items:center;padding:11px 12px;border-radius:10px;color:var(--tx);text-decoration:none;cursor:pointer;margin:2px 0}
+aside a:hover{background:var(--pr2)}aside a.on{background:var(--pr);color:#fff;font-weight:700}
+main{margin-left:250px;padding:20px;max-width:1300px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:18px}header h1{font-size:22px;margin:0;flex:1}
+.ic{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px}
+#mb{display:none}#sh{display:none;position:fixed;inset:0;background:#0006;z-index:15}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.st b{display:block;font-size:28px}.st span{color:var(--mu);font-size:13px}.st i{font-style:normal;font-size:24px;float:right}
+.two{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:16px}
+h3{margin:0 0 12px;font-size:16px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.bar input,.bar select,dialog input,dialog select,dialog textarea{padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);font:inherit;width:100%}
+.bar input{flex:1;min-width:160px;width:auto}
+.b{background:var(--pr);color:#fff;border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer}.b.g{background:var(--in)}.b.x{background:var(--bd);color:var(--tx)}
+.sc{overflow-x:auto;padding:0}table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}th{font-size:12px;text-transform:uppercase;color:var(--mu)}
+td button{border:0;background:none;cursor:pointer;font-size:16px}
+.bg{padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--pr2);color:var(--pr)}.bg.r{background:#fee2e2;color:var(--dn)}.bg.y{background:#fef3c7;color:var(--wn)}.bg.b{background:#dbeafe;color:var(--in)}
+.hb{display:flex;align-items:center;gap:8px;margin:7px 0}.hb em{width:60px;font-style:normal;color:var(--mu);font-size:13px}.hb div{height:14px;background:var(--pr);border-radius:7px;min-width:4px}
+.dn{width:130px;height:130px;border-radius:50%;margin:auto}.lg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;margin-top:12px}.lg s{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;text-decoration:none}
+dialog{border:0;border-radius:16px;padding:20px;width:min(520px,94vw);background:var(--card);color:var(--tx)}dialog::backdrop{background:#0007}
+dialog label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}
+svg.mp{width:100%;height:auto;background:var(--pr2);border-radius:12px}
+@media(max-width:1000px){aside{transform:translateX(-100%)}aside.open{transform:none}#sh.open{display:block}main{margin-left:0;padding:14px}#mb{display:block}}
+@media print{aside,.bar,header .ic,td:last-child,th:last-child{display:none!important}main{margin:0}}
+</style></head><body>
+<aside id="sd"><div class="logo">🏘️ QUẢN LÝ HỘ DÂN</div><nav id="nv"></nav></aside><div id="sh" onclick="tg()"></div>
+<main><header><button class="ic" id="mb" onclick="tg()">☰</button><h1 id="ti"></h1><button class="ic" onclick="th()" title="Sáng/Tối">🌓</button></header><div id="vw"></div></main>
+<dialog id="dg"><h3 id="dt"></h3><div id="df"></div><div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end"><button class="b x" onclick="dg.close()">Hủy</button><button class="b" onclick="sv()">Lưu</button></div></dialog>
+<script>
+const $=s=>document.querySelector(s),dg=$('#dg');
+const TO=['Tổ 1','Tổ 2','Tổ 3','Tổ 4','Tổ 5'],LOAI=['Bình thường','Cận nghèo','Hộ nghèo','Chính sách'];
+const NAV=[['dashboard','🏠','Dashboard'],['hodan','👨‍👩‍👧','Hộ dân'],['nhankhau','👤','Nhân khẩu'],['map','🗺️','Bản đồ / GPS'],['phananh','🛡️','Phản ánh'],['tochuc','🤝','Các tổ chức, đoàn thể'],['phongtrao','🌱','Phong trào'],['congviec','📋','Công việc'],['thuvien','📚','Thư viện'],['baocao','📄','Báo cáo']];
+const M={
+hodan:{f:[['ma','Mã hộ'],['chuho','Chủ hộ'],['diachi','Địa chỉ'],['to','Tổ',TO],['sdt','Điện thoại'],['loai','Loại hộ',LOAI],['lat','Vĩ độ','number'],['lng','Kinh độ','number']],c:['ma','chuho','diachi','to','sdt','loai']},
+nhankhau:{f:[['ten','Họ tên'],['hodan','Thuộc hộ (chủ hộ)',()=>D.hodan.map(h=>h.chuho)],['ns','Ngày sinh','date'],['gt','Giới tính',['Nam','Nữ']],['cccd','CCCD'],['qh','Quan hệ',['Chủ hộ','Vợ/Chồng','Con','Cha/Mẹ','Khác']],['nn','Nghề nghiệp']],c:['ten','hodan','ns','gt','qh','nn']},
+phananh:{f:[['tn','Tiêu đề'],['nguoi','Người phản ánh'],['nd','Nội dung','area'],['ngay','Ngày','date'],['tt','Trạng thái',['Chưa xử lý','Đang xử lý','Đã xử lý']]],c:['tn','nguoi','ngay','tt']},
+tochuc:{f:[['ten','Tên tổ chức'],['tp','Người đứng đầu'],['sl','Số hội viên','number'],['sh','Lịch sinh hoạt']],c:['ten','tp','sl','sh']},
+phongtrao:{f:[['ten','Tên phong trào'],['dv','Đơn vị phụ trách'],['bd','Bắt đầu','date'],['kt','Kết thúc','date'],['tt','Trạng thái',['Sắp diễn ra','Đang diễn ra','Đã kết thúc']]],c:['ten','dv','bd','kt','tt']},
+congviec:{f:[['tv','Công việc'],['ng','Phụ trách'],['hh','Hạn','date'],['ut','Ưu tiên',['Cao','Trung bình','Thấp']],['tt','Trạng thái',['Chờ làm','Đang làm','Hoàn thành']]],c:['tv','ng','hh','ut','tt']},
+thuvien:{f:[['ten','Tên tài liệu'],['lh','Loại',['Văn bản','Biểu mẫu','Hình ảnh','Video']],['ngay','Ngày đăng','date'],['gc','Ghi chú']],c:['ten','lh','ngay','gc']}};
+const N=['Nguyễn Văn An','Trần Thị Bình','Lê Quang Cường','Phạm Thị Dung','Võ Minh Đức','Huỳnh Thị Hà','Đặng Văn Hùng','Bùi Thị Lan','Ngô Văn Long','Đỗ Thị Mai','Phan Văn Nam','Lý Thị Oanh'];
+function seed(){const d={hodan:[],nhankhau:[]};N.forEach((n,i)=>{d.hodan.push({ma:'HD'+String(i+1).padStart(3,'0'),chuho:n,diachi:(10+i*3)+' đường Lê Lợi',to:TO[i%5],sdt:'09'+(10000000+i*1234567),loai:i%6==0?'Hộ nghèo':i%5==0?'Cận nghèo':i==7?'Chính sách':'Bình thường',lat:+(13.092+(i*7%10)*.0008).toFixed(5),lng:+(109.316+(i*3%10)*.0009).toFixed(5)});
+d.nhankhau.push({ten:n,hodan:n,ns:(1960+i)+'-05-12',gt:i%2?'Nữ':'Nam',cccd:'0540'+(80000000+i*7919),qh:'Chủ hộ',nn:'Làm nông'},{ten:'Con của '+n.split(' ').pop(),hodan:n,ns:(1990+i)+'-09-03',gt:i%2?'Nam':'Nữ',cccd:'0540'+(90000000+i*3571),qh:'Con',nn:'Công nhân'})});
+d.phananh=[{tn:'Đèn đường hỏng',nguoi:N[1],nd:'Đèn đường hẻm 12 không sáng.',ngay:'2026-11-10',tt:'Chưa xử lý'},{tn:'Rác thải tồn đọng',nguoi:N[4],nd:'Điểm tập kết rác quá tải.',ngay:'2026-11-12',tt:'Đang xử lý'},{tn:'Cống thoát nước tắc',nguoi:N[7],nd:'Nước ngập khi mưa lớn.',ngay:'2026-11-05',tt:'Đã xử lý'}];
+d.tochuc=[{ten:'Hội Phụ nữ',tp:N[3],sl:86,sh:'Thứ 7 hàng tuần'},{ten:'Đoàn Thanh niên',tp:N[4],sl:54,sh:'Chủ nhật đầu tháng'},{ten:'Hội Nông dân',tp:N[2],sl:70,sh:'Ngày 15 hàng tháng'},{ten:'Hội Cựu chiến binh',tp:N[8],sl:38,sh:'Ngày 20 hàng tháng'}];
+d.phongtrao=[{ten:'Toàn dân đoàn kết xây dựng đời sống văn hóa',dv:'Mặt trận',bd:'2026-01-01',kt:'2026-12-31',tt:'Đang diễn ra'},{ten:'Tết vì người nghèo',dv:'Hội Chữ thập đỏ',bd:'2026-12-15',kt:'2027-01-20',tt:'Sắp diễn ra'},{ten:'Ngày chủ nhật xanh',dv:'Đoàn Thanh niên',bd:'2026-03-01',kt:'2026-10-31',tt:'Đã kết thúc'}];
+d.congviec=[{tv:'Cập nhật biến động nhân khẩu',ng:N[0],hh:'2026-11-30',ut:'Cao',tt:'Đang làm'},{tv:'Thăm hộ nghèo cuối năm',ng:N[3],hh:'2026-12-20',ut:'Trung bình',tt:'Chờ làm'},{tv:'Họp tổ dân phố',ng:N[8],hh:'2026-11-20',ut:'Thấp',tt:'Hoàn thành'}];
+d.thuvien=[{ten:'Quy ước khu dân cư',lh:'Văn bản',ngay:'2026-06-01',gc:'Bản 2026'},{ten:'Mẫu đơn xác nhận cư trú',lh:'Biểu mẫu',ngay:'2026-07-15',gc:'Mẫu CT01'}];return d}
+let D;try{D=JSON.parse(localStorage.getItem('qlhd'))}catch(e){}D=D||seed();const S={};
+const save=()=>{try{localStorage.setItem('qlhd',JSON.stringify(D))}catch(e){}};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const lab=(m,c)=>m.f.find(f=>f[0]==c)[1];
+const CL={'Hộ nghèo':'r','Cận nghèo':'y','Chính sách':'b','Chưa xử lý':'r','Đang xử lý':'y','Đã xử lý':'','Cao':'r','Trung bình':'y','Đang làm':'y','Chờ làm':'b','Sắp diễn ra':'b','Đang diễn ra':'y'};
+const cell=(k,c,v)=>['loai','tt','ut'].includes(c)?`<span class="bg ${CL[v]||''}">${esc(v)}</span>`:esc(v);
+function nav(){$('#nv').innerHTML=NAV.map(n=>`<a id="n_${n[0]}" href="#${n[0]}"><span>${n[1]}</span>${n[2]}</a>`).join('')}
+function tg(){$('#sd').classList.toggle('open');$('#sh').classList.toggle('open')}
+function th(){const r=document.documentElement,d=r.dataset.theme=='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches);r.dataset.theme=d?'light':'dark'}
+function draw(){const v=(location.hash||'#dashboard').slice(1),n=NAV.find(x=>x[0]==v)||NAV[0];document.querySelectorAll('aside a').forEach(a=>a.classList.toggle('on',a.id=='n_'+n[0]));$('#ti').textContent=n[1]+' '+n[2];
+$('#sd').classList.remove('open');$('#sh').classList.remove('open');
+$('#vw').innerHTML=n[0]=='dashboard'?dash():n[0]=='map'?mapv():n[0]=='baocao'?rep():list(n[0]);if(M[n[0]])body(n[0]);scrollTo(0,0)}
+function list(k){const m=M[k];return`<div class="bar"><input placeholder="🔍 Tìm kiếm..." oninput="S['${k}']=this.value;body('${k}')"><button class="b" onclick="ed('${k}')">+ Thêm mới</button><button class="b g" onclick="csv('${k}')">⬇ Xuất CSV</button></div><div class="card sc"><table><thead><tr>${m.c.map(c=>`<th>${lab(m,c)}</th>`).join('')}<th></th></tr></thead><tbody id="tb"></tbody></table></div>`}
+function body(k){const m=M[k],q=(S[k]||'').toLowerCase();$('#tb').innerHTML=D[k].map((r,i)=>[r,i]).filter(o=>!q||Object.values(o[0]).join(' ').toLowerCase().includes(q)).map(([r,i])=>`<tr>${m.c.map(c=>`<td>${cell(k,c,r[c])}</td>`).join('')}<td><button onclick="ed('${k}',${i})">✏️</button><button onclick="del('${k}',${i})">🗑️</button></td></tr>`).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--mu)">Chưa có dữ liệu</td></tr>'}
+let cur;
+function ed(k,i){cur=[k,i];const m=M[k],r=i==null?{}:D[k][i];$('#dt').textContent=(i==null?'Thêm mới':'Chỉnh sửa')+' – '+NAV.find(n=>n[0]==k)[2];
+$('#df').innerHTML=m.f.map(([c,l,t])=>{const id='f_'+c,v=esc(r[c]??'');if(Array.isArray(t)||typeof t=='function'){const o=typeof t=='function'?t():t;return`<label>${l}</label><select id="${id}">${o.map(x=>`<option${x==r[c]?' selected':''}>${esc(x)}</option>`).join('')}</select>`}
+if(t=='area')return`<label>${l}</label><textarea id="${id}" rows="3">${v}</textarea>`;return`<label>${l}</label><input id="${id}" type="${t||'text'}" step="any" value="${v}">`}).join('')+(k=='hodan'?'<button class="b g" style="margin-top:12px" onclick="gps()">📍 Lấy vị trí GPS hiện tại</button>':'');dg.showModal()}
+function gps(){navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>{$('#f_lat').value=p.coords.latitude.toFixed(5);$('#f_lng').value=p.coords.longitude.toFixed(5)},()=>alert('Không lấy được vị trí. Hãy cho phép truy cập GPS.')):alert('Thiết bị không hỗ trợ GPS')}
+function sv(){const[k,i]=cur,o={};M[k].f.forEach(([c,,t])=>{const e=$('#f_'+c);o[c]=t=='number'&&e.value!==''?+e.value:e.value});if(!(o.chuho||o.ten||o.tn||o.tv)){alert('Vui lòng nhập thông tin chính');return}i==null?D[k].push(o):D[k][i]=o;save();dg.close();draw()}
+function del(k,i){if(confirm('Xóa bản ghi này?')){D[k].splice(i,1);save();draw()}}
+function csv(k){const m=M[k],t=[m.f.map(f=>f[1])].concat(D[k].map(r=>m.f.map(f=>r[f[0]]??''))).map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));a.download=k+'.csv';a.click()}
+function dash(){const h=D.hodan,pc=D.phananh.filter(p=>p.tt!='Đã xử lý').length,cv=D.congviec.filter(c=>c.tt!='Hoàn thành').length;
+const cnt=TO.map(t=>h.filter(x=>x.to==t).length),mx=Math.max(1,...cnt),col=['#16a34a','#d97706','#dc2626','#2563eb'];let a=0;const tot=h.length||1;
+const seg=LOAI.map((l,i)=>{const n=h.filter(x=>x.loai==l).length,s=a;a+=n/tot*100;return`${col[i]} ${s}% ${a}%`}).join(',');
+const st=[['🏠',h.length,'Tổng số hộ'],['👤',D.nhankhau.length,'Nhân khẩu'],['🆘',h.filter(x=>x.loai=='Hộ nghèo').length,'Hộ nghèo'],['📢',pc,'Phản ánh chờ xử lý'],['📋',cv,'Công việc chưa xong'],['🌱',D.phongtrao.filter(p=>p.tt=='Đang diễn ra').length,'Phong trào đang chạy']];
+return`<div class="grid">${st.map(s=>`<div class="card st"><i>${s[0]}</i><b>${s[1]}</b><span>${s[2]}</span></div>`).join('')}</div>
+<div class="two"><div class="card"><h3>Số hộ theo tổ</h3>${TO.map((t,i)=>`<div class="hb"><em>${t}</em><div style="width:${cnt[i]/mx*70}%"></div><b>${cnt[i]}</b></div>`).join('')}</div>
+<div class="card"><h3>Cơ cấu loại hộ</h3><div class="dn" style="background:conic-gradient(${seg})"></div><div class="lg">${LOAI.map((l,i)=>`<span><s style="background:${col[i]}"></s>${l}: ${h.filter(x=>x.loai==l).length}</span>`).join('')}</div></div></div>
+<div class="two"><div class="card"><h3>Phản ánh gần đây</h3>${D.phananh.slice(-4).reverse().map(p=>`<p style="margin:8px 0"><b>${esc(p.tn)}</b> <span class="bg ${CL[p.tt]||''}">${p.tt}</span><br><small style="color:var(--mu)">${esc(p.nguoi)} · ${p.ngay}</small></p>`).join('')||'Không có'}</div>
+<div class="card"><h3>Công việc sắp tới</h3>${D.congviec.filter(c=>c.tt!='Hoàn thành').map(c=>`<p style="margin:8px 0"><b>${esc(c.tv)}</b><br><small style="color:var(--mu)">${esc(c.ng)} · hạn ${c.hh}</small></p>`).join('')||'Đã hoàn thành hết 🎉'}</div></div>`}
+function mapv(){const p=D.hodan.filter(x=>x.lat&&x.lng);if(!p.length)return'<div class="card">Chưa có hộ nào có tọa độ GPS.</div>';
+const la=p.map(x=>x.lat),ln=p.map(x=>x.lng),a=Math.min(...la),b=Math.max(...la),c=Math.min(...ln),d=Math.max(...ln),col={'Bình thường':'#16a34a','Cận nghèo':'#d97706','Hộ nghèo':'#dc2626','Chính sách':'#2563eb'};
+const X=v=>40+(v-c)/((d-c)||1)*520,Y=v=>360-(v-a)/((b-a)||1)*320;
+return`<div class="card"><svg class="mp" viewBox="0 0 600 400"><path d="M0 120 Q200 80 300 200 T600 260" stroke="#fff" stroke-width="14" fill="none" opacity=".7"/><path d="M150 0 Q180 200 120 400" stroke="#fff" stroke-width="10" fill="none" opacity=".7"/>${p.map((x,i)=>`<g style="cursor:pointer" onclick="pin(${D.hodan.indexOf(x)})"><circle cx="${X(x.lng)}" cy="${Y(x.lat)}" r="10" fill="${col[x.loai]||'#16a34a'}" stroke="#fff" stroke-width="3"/></g>`).join('')}</svg>
+<div class="lg">${LOAI.map(l=>`<span><s style="background:${col[l]}"></s>${l}</span>`).join('')}</div><div id="pi" style="margin-top:12px;color:var(--mu)">Chạm vào một điểm để xem chi tiết hộ.</div></div>`}
+function pin(i){const x=D.hodan[i];$('#pi').innerHTML=`<b style="color:var(--tx)">${esc(x.chuho)}</b> (${x.ma}) · ${esc(x.diachi)}, ${x.to}<br>${x.lat}, ${x.lng} · <a href="https://www.google.com/maps?q=${x.lat},${x.lng}" target="_blank" rel="noopener">Mở Google Maps</a>`}
+function rep(){const h=D.hodan;return`<div class="bar"><button class="b" onclick="print()">🖨️ In báo cáo</button><button class="b g" onclick="csv('hodan')">⬇ Xuất danh sách hộ</button></div><div class="card sc"><table><thead><tr><th>Tổ</th><th>Số hộ</th><th>Nhân khẩu</th><th>Hộ nghèo</th><th>Cận nghèo</th></tr></thead><tbody>${TO.map(t=>{const hs=h.filter(x=>x.to==t),nk=D.nhankhau.filter(n=>hs.some(x=>x.chuho==n.hodan)).length;return`<tr><td>${t}</td><td>${hs.length}</td><td>${nk}</td><td>${hs.filter(x=>x.loai=='Hộ nghèo').length}</td><td>${hs.filter(x=>x.loai=='Cận nghèo').length}</td></tr>`}).join('')}<tr><th>Tổng</th><th>${h.length}</th><th>${D.nhankhau.length}</th><th>${h.filter(x=>x.loai=='Hộ nghèo').length}</th><th>${h.filter(x=>x.loai=='Cận nghèo').length}</th></tr></tbody></table></div>
+<div class="grid" style="margin-top:14px"><div class="card st"><b>${D.phananh.filter(p=>p.tt=='Đã xử lý').length}/${D.phananh.length}</b><span>Phản ánh đã xử lý</span></div><div class="card st"><b>${D.congviec.filter(c=>c.tt=='Hoàn thành').length}/${D.congviec.length}</b><span>Công việc hoàn thành</span></div><div class="card st"><b>${D.tochuc.reduce((s,t)=>s+(+t.sl||0),0)}</b><span>Tổng hội viên</span></div></div>`}
+nav();addEventListener('hashchange',draw);draw();
+</script></body></html>

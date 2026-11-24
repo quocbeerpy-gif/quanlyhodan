@@ -61,7 +61,7 @@ th{color:var(--mu);font-weight:600;font-size:12px;text-transform:uppercase}
 <div id="app"></div>
 <script>
 const U=[["Lê Quốc Hoàng","Bàn Thạch","0973466575"],["Trần Hậu","Vũng Rô","0987079113"],["Trương Thị Ha","Thạch Tuân","0937420425"],["Lữ Thi Minh","Phú Khê Tây","0987982948"],["Đặng Thị Nga","Phú Khê Đông","0399482450"],["Trần Bính Khiêm","Hiệp Đồng","0382206300"],["Lê Thị Kim Ngân","Hảo Sơn","0354321900"],["Huỳnh Thị Nga","Phước Long","0935890735"],["Nguyễn Anh Tuấn","Phước Giang","0978547747"]];
-const ADMIN={u:"admin",p:"admin@2026"};
+const ADMIN={u:"admin",p:"112233"};
 const T=[
 ["1.a","Quản lý đất đai, trật tự xây dựng",["Nắm tình hình sử dụng đất, xây dựng; phát hiện, báo cáo UBND xã các dấu hiệu vi phạm","Phối hợp kiểm tra hiện trạng, xác minh nguồn gốc sử dụng đất; tuyên truyền pháp luật","Phối hợp rà soát, xử lý vụ việc tồn đọng theo kết luận thanh tra, kiểm tra","Thông tin quy hoạch, dự án, chính sách bồi thường, tái định cư; vận động bàn giao mặt bằng"],"Vụ việc được phát hiện, báo cáo, phối hợp xử lý kịp thời; hạn chế vi phạm kéo dài"],
 ["1.b","Bảo vệ môi trường",["Tuyên truyền phân loại, thu gom, chuyển giao chất thải; không đổ rác bừa bãi","Duy trì vệ sinh đường làng, ngõ xóm; thu gom rác, khơi thông cống rãnh","Phản ánh điểm tồn đọng rác thải, nguy cơ ô nhiễm","Vận động hộ chăn nuôi, cơ sở sản xuất xử lý chất thải, nước thải"],"Duy trì thường xuyên vệ sinh môi trường; kịp thời xử lý điểm rác thải, ô nhiễm"],
@@ -123,7 +123,7 @@ function perSel(){const[y,m]=period.split("-"),yr=new Date().getFullYear();let o
 function nav(n){const ts=tasksFor(me),i=ts.findIndex(t=>t[0]===act)+n;if(ts[i]){act=ts[i][0];render()}}
 function head(){
  const nm=me==="admin"?"Quản trị UBND xã":U[me][0];
- const tabs=me==="admin"?[["admin","Tổng hợp"],["dash","Dashboard"]]:[["home","Trang chủ"],["dash","Dashboard"],["hist","Lịch sử"]];
+ const tabs=me==="admin"?[["admin","Tổng hợp"],["dash","Dashboard"],["tv","Trưởng thôn"]]:[["home","Trang chủ"],["dash","Dashboard"],["hist","Lịch sử"]];
  return `<div class="top noprint"><b>📋 Báo cáo Trưởng thôn</b><div class="nav">${tabs.map(t=>`<button class="${view===t[0]||(view==="form"&&t[0]==="home")?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}</div><span class="sp"></span><span class="mu" style="color:#e5fff4">${esc(nm)}${me==="admin"?"":" · "+esc(U[me][1])}</span><button class="ib" onclick="toggleTheme()" title="Giao diện">🌓</button><button class="ib" onclick="logout()">Đăng xuất</button></div>`;
 }
 function loginV(){
@@ -191,6 +191,15 @@ function dashV(){
  <div class="card"><h3>Xu hướng tiến độ theo tháng</h3>${trend.length?`<div class="tr">${trend.map(x=>`<div><span class="mu">${x[1]}%</span><i style="height:${x[1]*1.1}px"></i><span class="mu">${x[0].slice(5)}/${x[0].slice(2,4)}</span></div>`).join("")}</div>`:`<p class="mu">Chưa có dữ liệu.</p>`}</div>
  <div class="card"><h3>Khó khăn, kiến nghị của kỳ này</h3>${kns.length?kns.map(k=>`<div class="kn"><b>${esc(k[0])} · ${k[1][0]}. ${esc(k[1][1])}</b><br>${esc(k[2])}</div>`).join(""):`<p class="mu">Chưa có kiến nghị nào.</p>`}</div></div>`;
 }
+function thonV(){
+ return head()+`<div class="wrap"><div class="card"><h2>Quản lý Trưởng thôn</h2><div class="mu">Danh sách 9 thôn · xem toàn bộ báo cáo của từng trưởng thôn</div></div><div class="card tw"><table><tr><th>STT</th><th>Thôn</th><th>Trưởng thôn</th><th>Số điện thoại</th><th>Đã gửi</th><th>Gần nhất</th><th></th></tr>${U.map((u,i)=>{const a=R.filter(r=>r.u===i).sort((x,y)=>y.p.localeCompare(x.p));return `<tr><td>${i+1}</td><td><b>${esc(u[1])}</b></td><td>${esc(u[0])}</td><td class="mu">${u[2]}</td><td>${a.filter(r=>r.s==="sent").length}/${a.length}</td><td class="mu">${a[0]?fmtP(a[0].p)+" · "+pct(a[0])+"%":"—"}</td><td><button class="btn g s" onclick="lsU(${i})">Xem báo cáo</button></td></tr>`}).join("")}</table></div></div>`;
+}
+function lsU(i){
+ const a=R.filter(r=>r.u===i).sort((x,y)=>y.p.localeCompare(x.p));
+ const m=document.createElement("div");m.className="modal";m.id="ml";m.onclick=e=>{if(e.target===m)m.remove()};
+ m.innerHTML=`<div class="card"><h2>${esc(U[i][1])} — ${esc(U[i][0])}</h2>${a.length?`<div class="tw"><table><tr><th>Kỳ</th><th>Tiến độ</th><th>Trạng thái</th><th>Cập nhật</th><th></th></tr>${a.map(r=>`<tr><td><b>${fmtP(r.p)}</b></td><td>${pct(r)}%</td><td><span class="pill ${r.s==="sent"?"p-ok":"p-dr"}">${r.s==="sent"?"Đã gửi":"Nháp"}</span></td><td class="mu">${fmtD(r.t)}</td><td><button class="btn g s" onclick="show(${r.id})">Xem</button></td></tr>`).join("")}</table></div>`:`<p class="mu">Chưa có báo cáo nào.</p>`}<div style="text-align:right;margin-top:12px"><button class="btn s" onclick="$('ml').remove()">Đóng</button></div></div>`;
+ document.body.appendChild(m);
+}
 function csv(){
  const rows=[["Thôn","Trưởng thôn","Kỳ","Trạng thái","Lĩnh vực","Mức độ","Số liệu","Nội dung","Kiến nghị"]];
  R.filter(r=>r.p===period).forEach(r=>tasksFor(r.u).forEach(t=>{const d=r.d[t[0]]||{};rows.push([U[r.u][1],U[r.u][0],r.p,r.s==="sent"?"Đã gửi":"Nháp",t[0]+". "+t[1],(ST[d.st]||[""])[0],d.sl||"",d.nd||"",d.kn||""])}));
@@ -200,7 +209,7 @@ function csv(){
 function render(){
  const a=$("app");
  if(me===null)a.innerHTML=loginV();
- else if(me==="admin")a.innerHTML=view==="dash"?dashV():adminV();
+ else if(me==="admin")a.innerHTML=view==="dash"?dashV():view==="tv"?thonV():adminV();
  else a.innerHTML=view==="form"&&cur?formV():view==="hist"?histV():view==="dash"?dashV():homeV();
  scrollTo(0,0);
 }

@@ -99,7 +99,7 @@ function toggleTheme(){const dark=theme?theme==="dark":matchMedia("(prefers-colo
 function login(){
  const u=norm($("lu").value),p=dg($("lp").value);
  if(u===ADMIN.u&&$("lp").value===ADMIN.p){me="admin";sv("tt_me",me);view="admin";return render()}
- const i=U.findIndex(x=>norm(x[0])===u);
+ const i=U.findIndex(x=>norm(x[0])===u||norm(x[1])===u);
  if(i<0||dg(U[i][2])!==p){$("er").textContent="Sai tên đăng nhập hoặc mật khẩu.";return}
  me=i;sv("tt_me",me);view="home";render();
 }
@@ -128,7 +128,7 @@ function head(){
 }
 function loginV(){
  return `<div class="login"><div class="card"><div class="logo">🏘️</div><h2 style="text-align:center">Báo cáo công việc</h2><p class="mu" style="text-align:center;margin:0 0 14px">Hệ thống dành cho Trưởng thôn</p>
- <label>Tên đăng nhập (họ tên Trưởng thôn)</label><input id="lu" list="ul" autocomplete="username" placeholder="VD: Trần Hậu"><datalist id="ul">${U.map(x=>`<option value="${esc(x[0])}">`).join("")}</datalist>
+ <label>Tên đăng nhập (họ tên hoặc tên thôn)</label><input id="lu" list="ul" autocomplete="username" placeholder="VD: Trần Hậu hoặc Vũng Rô"><datalist id="ul">${U.map(x=>`<option value="${esc(x[0])}"><option value="${esc(x[1])}">`).join("")}</datalist>
  <label>Mật khẩu (số điện thoại)</label><input id="lp" type="password" autocomplete="current-password" placeholder="Số điện thoại" onkeydown="if(event.key==='Enter')login()">
  <div class="err" id="er"></div><button class="btn" style="width:100%;margin-top:8px" onclick="login()">Đăng nhập</button></div></div>`;
 }

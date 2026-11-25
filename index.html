@@ -60,6 +60,8 @@ th{color:var(--mu);font-weight:600;font-size:12px;text-transform:uppercase}
 </head>
 <body>
 <div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
 <script>
 const U=[["Lê Quốc Hoàng","Bàn Thạch","0973466575"],["Trần Hậu","Vũng Rô","0987079113"],["Trương Thị Ha","Thạch Tuân","0937420425"],["Lữ Thi Minh","Phú Khê Tây","0987982948"],["Đặng Thị Nga","Phú Khê Đông","0399482450"],["Trần Bính Khiêm","Hiệp Đồng","0382206300"],["Lê Thị Kim Ngân","Hảo Sơn","0354321900"],["Huỳnh Thị Nga","Phước Long","0935890735"],["Nguyễn Anh Tuấn","Phước Giang","0978547747"]];
 const ADMIN={u:"admin",p:"112233"};
@@ -91,6 +93,24 @@ const fmtP=p=>"Tháng "+p.slice(5)+"/"+p.slice(0,4);
 const fmtD=t=>new Date(t).toLocaleString("vi-VN");
 let me=ld("tt_me",null),view="home",cur=null,act=null,period=nowP(),theme=ld("tt_theme","");
 let R=ld("tt_reports",[]);let TK=ld("tt_tasks",[]),gfl="";
+const firebaseConfig={apiKey:"AIzaSyCPTvsKZhq2VfK-UNPmJwD8DJJvwFZy16M",authDomain:"bctt-b0e0e.firebaseapp.com",projectId:"bctt-b0e0e",storageBucket:"bctt-b0e0e.firebasestorage.app",messagingSenderId:"158014917449",appId:"1:158014917449:web:6d427c06eac0f1ff67e898",measurementId:"G-7TPK1552GC"};
+const FB={on:false,db:null,sR:null,sT:null,err:false};
+function fbErr(e){console.warn(e);if(FB.err)return;FB.err=true;toast(e&&e.code==="permission-denied"?"⚠ Firestore chưa cấp quyền, hãy cập nhật Rules":"⚠ Lỗi kết nối Firebase")}
+function fbInit(){
+ try{
+  if(!window.firebase)throw new Error("no sdk");
+  firebase.initializeApp(firebaseConfig);FB.db=firebase.firestore();
+  try{FB.db.settings({experimentalAutoDetectLongPolling:true,merge:true})}catch(e){}
+  const sub=(col,k)=>FB.db.collection(col).onSnapshot({includeMetadataChanges:true},s=>{
+   const was=FB.on;if(!s.metadata.fromCache)FB.on=true;
+   if(FB.on)FB[k]=s.docs.map(d=>d.data());
+   if(me!==null&&view!=="form"&&view!=="nv"&&!document.querySelector(".modal"))keep();
+  },fbErr);
+  sub("reports","sR");sub("tasks","sT");
+ }catch(e){console.warn(e)}
+}
+function fbSet(col,id,obj){if(!FB.db)return;try{const o=JSON.parse(JSON.stringify(obj));if(JSON.stringify(o).length>950000){toast("⚠ Dung lượng vượt 1MB, chưa đồng bộ được. Hãy bớt ảnh");return}FB.db.collection(col).doc(String(id)).set(o).catch(fbErr)}catch(e){fbErr(e)}}
+function fbDel(col,id){if(FB.db)FB.db.collection(col).doc(String(id)).delete().catch(fbErr)}
 const tasksFor=u=>T.filter(t=>!t[4]||t[4]===U[u][1]);
 const pct=r=>{const ts=tasksFor(r.u);let s=0;ts.forEach(t=>{const d=r.d[t[0]];if(d&&d.st==="ht")s+=1;else if(d&&d.st==="dt")s+=.5});return Math.round(s/ts.length*100)};
 const find=(u,p)=>R.find(r=>r.u===u&&r.p===p);
@@ -114,7 +134,7 @@ function newRep(p){
 function saveRep(send,force){
  if(send){const miss=tasksFor(me).filter(t=>!(cur.d[t[0]]&&cur.d[t[0]].st));if(miss.length&&!force){const m=document.createElement("div");m.className="modal";m.id="md";m.innerHTML=`<div class="card" style="max-width:420px;margin-top:20vh"><h3>Chưa đủ nội dung</h3><p>Còn ${miss.length} lĩnh vực chưa chọn mức độ thực hiện. Anh vẫn muốn gửi báo cáo?</p><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn g s" onclick="$('md').remove()">Quay lại bổ sung</button><button class="btn s" onclick="$('md').remove();saveRep(true,true)">Vẫn gửi</button></div></div>`;document.body.appendChild(m);return}}
  cur.s=send?"sent":"draft";cur.t=Date.now();
- R=R.filter(r=>!(r.u===cur.u&&r.p===cur.p));R.push(JSON.parse(JSON.stringify(cur)));const ok=sv("tt_reports",R);
+ R=R.filter(r=>!(r.u===cur.u&&r.p===cur.p));R.push(JSON.parse(JSON.stringify(cur)));const ok=sv("tt_reports",R);fbSet("reports",cur.u+"_"+cur.p,R.find(r=>r.u===cur.u&&r.p===cur.p));
  toast(!ok?"⚠ Bộ nhớ trình duyệt đầy, hãy bớt ảnh rồi lưu lại":send?"Đã gửi báo cáo ✓":"Đã lưu nháp");view="home";cur=null;render();
 }
 const setD=(id,k,v)=>{(cur.d[id]=cur.d[id]||{done:[]})[k]=v};
@@ -131,7 +151,7 @@ function nav(n){const ts=tasksFor(me),i=ts.findIndex(t=>t[0]===act)+n;if(ts[i]){
 function head(){
  const nm=me==="admin"?"Quản trị UBND xã":U[me][0];
  const tabs=me==="admin"?[["admin","Tổng hợp"],["dash","Dashboard"],["tv","Trưởng thôn"],["gn","Giao nhiệm vụ"]]:[["home","Trang chủ"],["nv","Nhiệm vụ"+(n=>n?" ("+n+")":"")(TK.filter(t=>t.u===me&&t.st!=="done").length)],["dash","Dashboard"],["hist","Lịch sử"]];
- return `<div class="top noprint"><b>📋 Báo cáo Trưởng thôn</b><div class="nav">${tabs.map(t=>`<button class="${view===t[0]||(view==="form"&&t[0]==="home")?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}</div><span class="sp"></span><span class="mu" style="color:#e5fff4">${esc(nm)}${me==="admin"?"":" · "+esc(U[me][1])}</span><button class="ib" onclick="toggleTheme()" title="Giao diện">🌓</button><button class="ib" onclick="logout()">Đăng xuất</button></div>`;
+ return `<div class="top noprint"><b>📋 Báo cáo Trưởng thôn</b><div class="nav">${tabs.map(t=>`<button class="${view===t[0]||(view==="form"&&t[0]==="home")?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}</div><span class="sp"></span><span class="mu" style="color:#e5fff4">${esc(nm)}${me==="admin"?"":" · "+esc(U[me][1])}</span><span class="mu" style="color:#e5fff4;font-size:12px" title="${FB.on?"Dữ liệu đồng bộ qua Firebase":"Chưa kết nối Firebase, dữ liệu chỉ lưu trên máy này"}">${FB.on?"☁ Đã đồng bộ":"⚠ Chưa kết nối"}</span><button class="ib" onclick="toggleTheme()" title="Giao diện">🌓</button><button class="ib" onclick="logout()">Đăng xuất</button></div>`;
 }
 function loginV(){
  return `<div class="login"><div class="card"><div class="logo">🏘️</div><h2 style="text-align:center">Báo cáo công việc</h2><p class="mu" style="text-align:center;margin:0 0 14px">Hệ thống dành cho Trưởng thôn</p>
@@ -219,10 +239,10 @@ function assign(){
  const to=[...document.querySelectorAll(".gu:checked")].map(e=>+e.value),title=$("gt").value.trim();
  if(!to.length||!title){toast("Chọn thôn và nhập tiêu đề nhiệm vụ");return}
  const p=v=>String(v).padStart(2,"0"),due=$("gy").value+"-"+p($("gm").value)+"-"+p($("gd").value),gid=Date.now();
- to.forEach(u=>TK.push({id:gid+u,u,title,desc:$("gc").value.trim(),due,pri:$("gp").value,st:"new",res:"",img:[],t:gid}));
+ to.forEach(u=>{const t={id:gid+u,u,title,desc:$("gc").value.trim(),due,pri:$("gp").value,st:"new",res:"",img:[],t:gid};TK.push(t);fbSet("tasks",t.id,t)});
  const ok=sv("tt_tasks",TK);toast(ok?"Đã giao nhiệm vụ cho "+to.length+" thôn ✓":"⚠ Bộ nhớ trình duyệt đầy");keep();
 }
-function delTk(id){ask("Xóa nhiệm vụ này?",()=>{TK=TK.filter(t=>t.id!==id);sv("tt_tasks",TK);toast("Đã xóa");keep()})}
+function delTk(id){ask("Xóa nhiệm vụ này?",()=>{TK=TK.filter(t=>t.id!==id);sv("tt_tasks",TK);fbDel("tasks",id);toast("Đã xóa");keep()})}
 function viewTk(id){const t=TK.find(x=>x.id===id),m=document.createElement("div");m.className="modal";m.id="mt";m.onclick=e=>{if(e.target===m)m.remove()};
  m.innerHTML=`<div class="card"><h2>${esc(t.title)}</h2><div class="mu">${esc(U[t.u][1])} · ${esc(U[t.u][0])} · Hạn ${fmtDate(t.due)} · Giao ${fmtD(t.t)}</div><p><span class="pill ${TS[t.st][1]}">${TS[t.st][0]}</span> <span class="pill ${PRI[t.pri][1]}">${PRI[t.pri][0]}</span>${late(t)?` <span class="pill p-er">Quá hạn</span>`:""}</p>${t.desc?`<p style="white-space:pre-wrap">${esc(t.desc)}</p>`:""}<h3>Kết quả thực hiện</h3><p style="white-space:pre-wrap">${t.res?esc(t.res):`<span class="mu">Chưa có cập nhật.</span>`}</p>${(t.img||[]).length?`<div class="imgs">${t.img.map(s=>`<div class="th"><img src="${s}" onclick="zoomS(this.src)"></div>`).join("")}</div>`:""}<div style="text-align:right"><button class="btn s" onclick="$('mt').remove()">Đóng</button></div></div>`;document.body.appendChild(m)}
 function gnV(){
@@ -243,7 +263,7 @@ function tkSet(id,k,v){TK.find(x=>x.id===id)[k]=v}
 function tkDel(id,i){const t=TK.find(x=>x.id===id);t.img.splice(i,1);$("ti"+id).innerHTML=tkImgs(t)}
 function tkAdd(id,inp){const t=TK.find(x=>x.id===id);t.img=t.img||[];let fs=[...inp.files];inp.value="";const room=4-t.img.length;if(fs.length>room){toast("Tối đa 4 ảnh mỗi nhiệm vụ");fs=fs.slice(0,Math.max(0,room))}
  Promise.all(fs.map(comp)).then(r=>{const g=r.filter(Boolean);g.forEach(x=>t.img.push(x));$("ti"+id).innerHTML=tkImgs(t);if(g.length)toast("Đã thêm và nén "+g.length+" ảnh")})}
-function tkSave(id){const t=TK.find(x=>x.id===id);t.t2=Date.now();const ok=sv("tt_tasks",TK);toast(ok?"Đã lưu cập nhật ✓":"⚠ Bộ nhớ trình duyệt đầy, hãy bớt ảnh");keep()}
+function tkSave(id){const t=TK.find(x=>x.id===id);t.t2=Date.now();const ok=sv("tt_tasks",TK);fbSet("tasks",t.id,t);toast(ok?"Đã lưu cập nhật ✓":"⚠ Bộ nhớ trình duyệt đầy, hãy bớt ảnh");keep()}
 function nvV(){
  const a=TK.filter(t=>t.u===me).sort((x,y)=>(x.st==="done")-(y.st==="done")||x.due.localeCompare(y.due));
  return head()+`<div class="wrap"><div class="card"><h2>Nhiệm vụ được giao</h2><div class="mu">Thôn ${esc(U[me][1])} · ${a.filter(t=>t.st!=="done").length} nhiệm vụ chưa hoàn thành</div></div>${a.length?a.map(t=>`<div class="task"><h3>${esc(t.title)} <span class="pill ${PRI[t.pri][1]}">${PRI[t.pri][0]}</span> ${late(t)?`<span class="pill p-er">Quá hạn</span>`:""}</h3><div class="mu">Hạn: <b>${fmtDate(t.due)}</b> · Giao lúc ${fmtD(t.t)}</div>${t.desc?`<p style="white-space:pre-wrap">${esc(t.desc)}</p>`:""}<div class="row"><div><label>Trạng thái</label><select onchange="tkSet(${t.id},'st',this.value)">${Object.entries(TS).map(([k,v])=>`<option value="${k}" ${t.st===k?"selected":""}>${v[0]}</option>`).join("")}</select></div></div><label>Kết quả thực hiện</label><textarea oninput="tkSet(${t.id},'res',this.value)">${esc(t.res)}</textarea><label>Hình ảnh minh chứng (tối đa 4 ảnh)</label><div class="imgs" id="ti${t.id}">${tkImgs(t)}</div><button class="btn g s" onclick="this.nextElementSibling.click()">📷 Thêm ảnh</button><input type="file" accept="image/*" multiple hidden onchange="tkAdd(${t.id},this)"><div style="text-align:right"><button class="btn s" onclick="tkSave(${t.id})">💾 Lưu cập nhật</button></div></div>`).join(""):`<div class="card mu">Chưa có nhiệm vụ nào được giao.</div>`}</div>`;
@@ -255,13 +275,13 @@ function csv(){
  const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(c);a.download="bao-cao-"+period+".csv";a.click();
 }
 function render(){
- const a=$("app");
+ if(view!=="form"&&view!=="nv"){if(FB.sR)R=FB.sR;if(FB.sT)TK=FB.sT}const a=$("app");
  if(me===null)a.innerHTML=loginV();
  else if(me==="admin")a.innerHTML=view==="dash"?dashV():view==="tv"?thonV():view==="gn"?gnV():adminV();
  else a.innerHTML=view==="form"&&cur?formV():view==="hist"?histV():view==="dash"?dashV():view==="nv"?nvV():homeV();
  scrollTo(0,0);
 }
-setTheme();render();
+setTheme();render();fbInit();
 </script>
 </body>
 </html>

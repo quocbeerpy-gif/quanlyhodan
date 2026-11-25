@@ -13,7 +13,7 @@ body{background:var(--bg);color:var(--tx);font:15px/1.5 "Segoe UI",system-ui,Rob
 button,input,select,textarea{font:inherit;color:inherit}
 .top{position:sticky;top:0;z-index:5;background:linear-gradient(120deg,#0b5d42,#14b37d);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .top b{font-size:17px}.top .sp{flex:1}
-.nav{display:flex;gap:6px}
+.nav{display:flex;gap:6px;flex-wrap:wrap}
 .nav button,.ib{background:rgba(255,255,255,.16);border:0;color:#fff;padding:7px 13px;border-radius:99px;cursor:pointer}
 .nav button.on{background:#fff;color:#0b5d42;font-weight:600}
 .wrap{max-width:1000px;margin:0 auto;padding:18px}
@@ -152,13 +152,13 @@ function addImg(id,inp){const d=(cur.d[id]=cur.d[id]||{done:[]});d.img=d.img||[]
 function delImg(id,i){cur.d[id].img.splice(i,1);$("im").innerHTML=imgsH(id)}
 function setP(){period=$("py").value+"-"+$("pm").value;render()}
 function perSel(){const[y,m]=period.split("-"),yr=new Date().getFullYear();let o="";for(let i=yr-2;i<=yr+1;i++)o+=`<option value="${i}" ${String(i)===y?"selected":""}>Năm ${i}</option>`;let q="";for(let i=1;i<=12;i++){const v=String(i).padStart(2,"0");q+=`<option value="${v}" ${v===m?"selected":""}>Tháng ${i}</option>`}return `<div style="display:flex;gap:8px"><select id="pm" style="flex:1;min-width:0;padding:10px 6px" onchange="setP()">${q}</select><select id="py" style="flex:1;min-width:0;padding:10px 6px" onchange="setP()">${o}</select></div>`}
-function ktH(){const a=cur.kt||[];return a.map((k,i)=>`<div class="kn" style="padding:10px"><div class="row"><div><label style="margin-top:0">Người kiến nghị (người dân / cử tri)</label><input value="${esc(k.nguoi)}" oninput="cur.kt[${i}].nguoi=this.value" placeholder="Họ tên, địa chỉ"></div><div><label style="margin-top:0">Tình trạng xử lý</label><select onchange="cur.kt[${i}].xl=this.value">${["Chưa giải quyết","Đã giải quyết","Đã báo cáo UBND xã"].map(x=>`<option ${k.xl===x?"selected":""}>${x}</option>`).join("")}</select></div></div><label>Nội dung kiến nghị</label><textarea oninput="cur.kt[${i}].nd=this.value">${esc(k.nd)}</textarea><div style="text-align:right"><button class="btn g s" onclick="ktDel(${i})">🗑 Xóa</button></div></div>`).join("")||`<span class="mu">Chưa có kiến nghị nào.</span>`}
-function ktAdd(){(cur.kt=cur.kt||[]).push({nguoi:"",nd:"",xl:"Chưa giải quyết"});$("kt").innerHTML=ktH()}
+function ktH(){const a=cur.kt||[];return a.map((k,i)=>`<div class="kn" style="padding:10px"><div style="max-width:260px"><label style="margin-top:0">Tình trạng xử lý</label><select onchange="cur.kt[${i}].xl=this.value">${["Chưa giải quyết","Đã giải quyết","Đã báo cáo UBND xã"].map(x=>`<option ${k.xl===x?"selected":""}>${x}</option>`).join("")}</select></div><label>Nội dung kiến nghị</label><textarea oninput="cur.kt[${i}].nd=this.value">${esc(k.nd)}</textarea><div style="text-align:right"><button class="btn g s" onclick="ktDel(${i})">🗑 Xóa</button></div></div>`).join("")||`<span class="mu">Chưa có kiến nghị nào.</span>`}
+function ktAdd(){(cur.kt=cur.kt||[]).push({nd:"",xl:"Chưa giải quyết"});$("kt").innerHTML=ktH()}
 function ktDel(i){cur.kt.splice(i,1);$("kt").innerHTML=ktH()}
 function nav(n){const ts=tasksFor(me),i=ts.findIndex(t=>t[0]===act)+n;if(ts[i]){act=ts[i][0];render()}}
 function head(){
  const nm=me==="admin"?"Quản trị UBND xã":U[me][0];
- const tabs=me==="admin"?[["admin","Tổng hợp"],["dash","Dashboard"],["tv","Trưởng thôn"],["gn","Giao nhiệm vụ"]]:[["home","Báo cáo"],["nv","Nhiệm vụ"+(n=>n?" ("+n+")":"")(TK.filter(t=>t.u===me&&t.st!=="done").length)],["dash","Dashboard"],["hist","Lịch sử"]];
+ const tabs=me==="admin"?[["admin","Tổng hợp"],["dash","Dashboard"],["tv","Trưởng thôn"],["gn","Giao nhiệm vụ"],["kt","Cử tri kiến nghị"]]:[["home","Báo cáo"],["nv","Nhiệm vụ"+(n=>n?" ("+n+")":"")(TK.filter(t=>t.u===me&&t.st!=="done").length)],["dash","Dashboard"],["hist","Lịch sử"]];
  return `<div class="top noprint"><b>📋 Báo cáo Trưởng thôn</b><div class="nav">${tabs.map(t=>`<button class="${view===t[0]||(view==="form"&&t[0]==="home")?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}</div><span class="sp"></span><span class="mu" style="color:#e5fff4">${esc(nm)}${me==="admin"?"":" · "+esc(U[me][1])}</span><span class="mu" style="color:#e5fff4;font-size:12px" title="${FB.on?"Dữ liệu đồng bộ qua Firebase":"Chưa kết nối Firebase, dữ liệu chỉ lưu trên máy này"}">${FB.on?"☁ Đã đồng bộ":"⚠ Chưa kết nối"}</span><button class="ib" onclick="toggleTheme()" title="Giao diện">🌓</button><button class="ib" onclick="logout()">Đăng xuất</button></div>`;
 }
 function loginV(){
@@ -203,7 +203,7 @@ function adminV(){
  const avg=Math.round(rs.reduce((a,x)=>a+(x.r?pct(x.r):0),0)/9);
  return head()+`<div class="wrap"><div class="card"><h2>Tổng hợp báo cáo 9 thôn</h2><div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap"><div style="max-width:300px;min-width:240px"><label>Kỳ báo cáo</label>${perSel()}</div><button class="btn g" onclick="csv()">⬇ Xuất CSV</button></div></div>
  <div class="grid"><div class="stat"><span class="mu">Đã nộp</span><b>${sent}/9</b></div><div class="stat"><span class="mu">Chưa nộp</span><b>${9-sent}</b></div><div class="stat"><span class="mu">Tiến độ TB</span><b>${avg}%</b></div></div>
- <div class="card tw"><table><tr><th>Thôn</th><th>Trưởng thôn</th><th>SĐT</th><th>Tiến độ</th><th>Trạng thái</th><th></th></tr>${rs.map(x=>`<tr><td><b>${esc(x.u[1])}</b></td><td>${esc(x.u[0])}</td><td class="mu">${x.u[2]}</td><td style="min-width:100px"><div class="bar"><i style="width:${x.r?pct(x.r):0}%"></i></div></td><td><span class="pill ${x.r?(x.r.s==="sent"?"p-ok":"p-dr"):"p-no"}">${x.r?(x.r.s==="sent"?"Đã gửi":"Nháp"):"Chưa nộp"}</span></td><td>${x.r?`<button class="btn g s" onclick="show(${x.r.id})">Xem</button>`:""}</td></tr>`).join("")}</table></div></div>`;
+ <div class="card tw"><table><tr><th>Thôn</th><th>Trưởng thôn</th><th>SĐT</th><th>Tiến độ</th><th>Kiến nghị</th><th>Trạng thái</th><th></th></tr>${rs.map(x=>`<tr><td><b>${esc(x.u[1])}</b></td><td>${esc(x.u[0])}</td><td class="mu">${x.u[2]}</td><td style="min-width:100px"><div class="bar"><i style="width:${x.r?pct(x.r):0}%"></i></div></td><td>${x.r&&(x.r.kt||[]).length?`<b>${x.r.kt.length}</b>`:"—"}</td><td><span class="pill ${x.r?(x.r.s==="sent"?"p-ok":"p-dr"):"p-no"}">${x.r?(x.r.s==="sent"?"Đã gửi":"Nháp"):"Chưa nộp"}</span></td><td>${x.r?`<button class="btn g s" onclick="show(${x.r.id})">Xem</button>`:""}</td></tr>`).join("")}</table></div></div>`;
 }
 function dashV(){
  const adm=me==="admin",sc=adm?U.map((_,i)=>i):[me];
@@ -276,6 +276,15 @@ function nvV(){
  const a=TK.filter(t=>t.u===me).sort((x,y)=>(x.st==="done")-(y.st==="done")||x.due.localeCompare(y.due));
  return head()+`<div class="wrap"><div class="card"><h2>Nhiệm vụ được giao</h2><div class="mu">Thôn ${esc(U[me][1])} · ${a.filter(t=>t.st!=="done").length} nhiệm vụ chưa hoàn thành</div></div>${a.length?a.map(t=>`<div class="task"><h3>${esc(t.title)} <span class="pill ${PRI[t.pri][1]}">${PRI[t.pri][0]}</span> ${late(t)?`<span class="pill p-er">Quá hạn</span>`:""}</h3><div class="mu">Hạn: <b>${fmtDate(t.due)}</b> · Giao lúc ${fmtD(t.t)}</div>${t.desc?`<p style="white-space:pre-wrap">${esc(t.desc)}</p>`:""}<div class="row"><div><label>Trạng thái</label><select onchange="tkSet(${t.id},'st',this.value)">${Object.entries(TS).map(([k,v])=>`<option value="${k}" ${t.st===k?"selected":""}>${v[0]}</option>`).join("")}</select></div></div><label>Kết quả thực hiện</label><textarea oninput="tkSet(${t.id},'res',this.value)">${esc(t.res)}</textarea><label>Hình ảnh minh chứng (tối đa 4 ảnh)</label><div class="imgs" id="ti${t.id}">${tkImgs(t)}</div><button class="btn g s" onclick="this.nextElementSibling.click()">📷 Thêm ảnh</button><input type="file" accept="image/*" multiple hidden onchange="tkAdd(${t.id},this)"><div style="text-align:right"><button class="btn s" onclick="tkSave(${t.id})">💾 Lưu cập nhật</button></div></div>`).join(""):`<div class="card mu">Chưa có nhiệm vụ nào được giao.</div>`}</div>`;
 }
+let kfS="",kfT="";
+const XL=["Chưa giải quyết","Đã giải quyết","Đã báo cáo UBND xã"],XC={"Chưa giải quyết":"p-er","Đã giải quyết":"p-ok","Đã báo cáo UBND xã":"p-dr"};
+function ktV(){
+ const all=[];R.filter(r=>r.p===period).forEach(r=>(r.kt||[]).forEach(k=>all.push({r,k})));
+ const a=all.filter(x=>(kfT===""||x.r.u===+kfT)&&(kfS===""||x.k.xl===kfS)),c=s=>all.filter(x=>x.k.xl===s).length;
+ return head()+`<div class="wrap"><div class="card"><h2>Tổng hợp cử tri kiến nghị</h2><div class="mu">Kiến nghị của người dân và cử tri từ báo cáo của 9 thôn · ${fmtP(period)}</div><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end"><div style="min-width:240px;max-width:300px"><label>Kỳ báo cáo</label>${perSel()}</div><div style="min-width:170px"><label>Thôn</label><select onchange="kfT=this.value;render()"><option value="">Tất cả các thôn</option>${U.map((u,i)=>`<option value="${i}" ${kfT===String(i)?"selected":""}>${esc(u[1])}</option>`).join("")}</select></div><div style="min-width:190px"><label>Tình trạng xử lý</label><select onchange="kfS=this.value;render()"><option value="">Tất cả</option>${XL.map(s=>`<option ${kfS===s?"selected":""}>${s}</option>`).join("")}</select></div></div></div>
+ <div class="grid"><div class="stat"><span class="mu">Tổng kiến nghị</span><b>${all.length}</b></div>${XL.map(s=>`<div class="stat"><span class="mu">${s}</span><b>${c(s)}</b></div>`).join("")}</div>
+ <div class="card">${a.length?`<div class="tw"><table><tr><th>Thôn</th><th>Nội dung kiến nghị</th><th>Tình trạng</th><th>Báo cáo</th><th></th></tr>${a.map(x=>`<tr><td style="white-space:nowrap"><b>${esc(U[x.r.u][1])}</b><div class="mu">${esc(U[x.r.u][0])}</div></td><td style="white-space:pre-wrap;min-width:220px">${esc(x.k.nd)}</td><td><span class="pill ${XC[x.k.xl]||"p-no"}">${esc(x.k.xl)}</span></td><td><span class="pill ${x.r.s==="sent"?"p-ok":"p-dr"}">${x.r.s==="sent"?"Đã gửi":"Nháp"}</span></td><td><button class="btn g s" onclick="show(${x.r.id})">Xem báo cáo</button></td></tr>`).join("")}</table></div>`:`<p class="mu">Không có kiến nghị nào trong kỳ này.</p>`}</div></div>`;
+}
 function csv(){
  const rows=[["Thôn","Trưởng thôn","Kỳ","Trạng thái","Lĩnh vực","Mức độ","Số liệu","Nội dung","Kiến nghị"]];
  R.filter(r=>r.p===period).forEach(r=>tasksFor(r.u).forEach(t=>{const d=r.d[t[0]]||{};rows.push([U[r.u][1],U[r.u][0],r.p,r.s==="sent"?"Đã gửi":"Nháp",t[0]+". "+t[1],(ST[d.st]||[""])[0],d.sl||"",d.nd||"",d.kn||""])}));
@@ -286,7 +295,7 @@ function csv(){
 function render(){
  if(FB.sR)R=FB.sR;mergeT();const a=$("app");
  if(me===null)a.innerHTML=loginV();
- else if(me==="admin")a.innerHTML=view==="dash"?dashV():view==="tv"?thonV():view==="gn"?gnV():adminV();
+ else if(me==="admin")a.innerHTML=view==="dash"?dashV():view==="tv"?thonV():view==="gn"?gnV():view==="kt"?ktV():adminV();
  else a.innerHTML=view==="form"&&cur?formV():view==="hist"?histV():view==="dash"?dashV():view==="nv"?nvV():homeV();
  scrollTo(0,0);
 }

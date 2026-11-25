@@ -34,7 +34,7 @@ label{font-size:13px;color:var(--mu);display:block;margin:10px 0 4px}
 .login .card{width:100%;max-width:400px;padding:30px}
 .logo{font-size:44px;text-align:center}
 .pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600}
-.p-ok{background:#d6f5e6;color:#0b6b46}.p-dr{background:#fdecc8;color:#8a5a00}.p-no{background:#eee;color:#666}
+.p-ok{background:#d6f5e6;color:#0b6b46}.p-dr{background:#fdecc8;color:#8a5a00}.p-no{background:#eee;color:#666}.p-er{background:#fde0e0;color:#a32020}
 .bar{height:8px;background:var(--bd);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--pr),var(--pr2))}
 .task{border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px;background:var(--card)}
 .task h3{color:var(--pr)}
@@ -90,7 +90,7 @@ const nowP=()=>new Date().toISOString().slice(0,7);
 const fmtP=p=>"Tháng "+p.slice(5)+"/"+p.slice(0,4);
 const fmtD=t=>new Date(t).toLocaleString("vi-VN");
 let me=ld("tt_me",null),view="home",cur=null,act=null,period=nowP(),theme=ld("tt_theme","");
-let R=ld("tt_reports",[]);
+let R=ld("tt_reports",[]);let TK=ld("tt_tasks",[]),gfl="";
 const tasksFor=u=>T.filter(t=>!t[4]||t[4]===U[u][1]);
 const pct=r=>{const ts=tasksFor(r.u);let s=0;ts.forEach(t=>{const d=r.d[t[0]];if(d&&d.st==="ht")s+=1;else if(d&&d.st==="dt")s+=.5});return Math.round(s/ts.length*100)};
 const find=(u,p)=>R.find(r=>r.u===u&&r.p===p);
@@ -130,7 +130,7 @@ function perSel(){const[y,m]=period.split("-"),yr=new Date().getFullYear();let o
 function nav(n){const ts=tasksFor(me),i=ts.findIndex(t=>t[0]===act)+n;if(ts[i]){act=ts[i][0];render()}}
 function head(){
  const nm=me==="admin"?"Quản trị UBND xã":U[me][0];
- const tabs=me==="admin"?[["admin","Tổng hợp"],["dash","Dashboard"],["tv","Trưởng thôn"]]:[["home","Trang chủ"],["dash","Dashboard"],["hist","Lịch sử"]];
+ const tabs=me==="admin"?[["admin","Tổng hợp"],["dash","Dashboard"],["tv","Trưởng thôn"],["gn","Giao nhiệm vụ"]]:[["home","Trang chủ"],["nv","Nhiệm vụ"+(n=>n?" ("+n+")":"")(TK.filter(t=>t.u===me&&t.st!=="done").length)],["dash","Dashboard"],["hist","Lịch sử"]];
  return `<div class="top noprint"><b>📋 Báo cáo Trưởng thôn</b><div class="nav">${tabs.map(t=>`<button class="${view===t[0]||(view==="form"&&t[0]==="home")?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}</div><span class="sp"></span><span class="mu" style="color:#e5fff4">${esc(nm)}${me==="admin"?"":" · "+esc(U[me][1])}</span><button class="ib" onclick="toggleTheme()" title="Giao diện">🌓</button><button class="ib" onclick="logout()">Đăng xuất</button></div>`;
 }
 function loginV(){
@@ -144,7 +144,7 @@ function homeV(){
  const r=find(me,nowP()),sent=mine.filter(x=>x.s==="sent").length;
  return head()+`<div class="wrap"><div class="card"><h2>Xin chào, ${esc(U[me][0])} 👋</h2><div class="mu">Trưởng thôn ${esc(U[me][1])} · ${tasksFor(me).length} lĩnh vực cần báo cáo</div>
  <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:end"><div style="max-width:300px;min-width:240px"><label>Kỳ báo cáo</label>${perSel()}</div><button class="btn" onclick="newRep()">${find(me,period)?"✏️ Tiếp tục / sửa báo cáo":"➕ Lập báo cáo mới"}</button></div></div>
- <div class="grid"><div class="stat"><span class="mu">Báo cáo đã gửi</span><b>${sent}</b></div><div class="stat"><span class="mu">Bản nháp</span><b>${mine.length-sent}</b></div><div class="stat"><span class="mu">Tháng này</span><b>${r?pct(r)+"%":"—"}</b><span class="pill ${r&&r.s==="sent"?"p-ok":"p-dr"}">${r?(r.s==="sent"?"Đã gửi":"Nháp"):"Chưa lập"}</span></div></div>
+ <div class="grid"><div class="stat" onclick="go('nv')" style="cursor:pointer"><span class="mu">Nhiệm vụ cần làm</span><b>${TK.filter(t=>t.u===me&&t.st!=="done").length}</b></div><div class="stat"><span class="mu">Báo cáo đã gửi</span><b>${sent}</b></div><div class="stat"><span class="mu">Bản nháp</span><b>${mine.length-sent}</b></div><div class="stat"><span class="mu">Tháng này</span><b>${r?pct(r)+"%":"—"}</b><span class="pill ${r&&r.s==="sent"?"p-ok":"p-dr"}">${r?(r.s==="sent"?"Đã gửi":"Nháp"):"Chưa lập"}</span></div></div>
  <div class="card"><h3>Báo cáo gần đây</h3>${listV(mine.slice(0,4))}</div></div>`;
 }
 function listV(a){
@@ -208,6 +208,46 @@ function lsU(i){
  m.innerHTML=`<div class="card"><h2>${esc(U[i][1])} — ${esc(U[i][0])}</h2>${a.length?`<div class="tw"><table><tr><th>Kỳ</th><th>Tiến độ</th><th>Trạng thái</th><th>Cập nhật</th><th></th></tr>${a.map(r=>`<tr><td><b>${fmtP(r.p)}</b></td><td>${pct(r)}%</td><td><span class="pill ${r.s==="sent"?"p-ok":"p-dr"}">${r.s==="sent"?"Đã gửi":"Nháp"}</span></td><td class="mu">${fmtD(r.t)}</td><td><button class="btn g s" onclick="show(${r.id})">Xem</button></td></tr>`).join("")}</table></div>`:`<p class="mu">Chưa có báo cáo nào.</p>`}<div style="text-align:right;margin-top:12px"><button class="btn s" onclick="$('ml').remove()">Đóng</button></div></div>`;
  document.body.appendChild(m);
 }
+const PRI={n:["Thường","p-no"],i:["Quan trọng","p-dr"],u:["Khẩn","p-er"]},TS={new:["Chưa thực hiện","p-no"],doing:["Đang thực hiện","p-dr"],done:["Hoàn thành","p-ok"]};
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const fmtDate=s=>s.split("-").reverse().join("/");
+const late=t=>t.st!=="done"&&t.due<iso(new Date());
+function dSel(){const n=new Date(),d=new Date(n.getTime()+7*864e5),y0=n.getFullYear(),s="flex:1;min-width:0;padding:10px 6px";let D="",M="",Y="";for(let i=1;i<=31;i++)D+=`<option value="${i}" ${i===d.getDate()?"selected":""}>${i}</option>`;for(let i=1;i<=12;i++)M+=`<option value="${i}" ${i===d.getMonth()+1?"selected":""}>Tháng ${i}</option>`;for(let i=y0;i<=y0+2;i++)Y+=`<option value="${i}" ${i===d.getFullYear()?"selected":""}>${i}</option>`;return `<div style="display:flex;gap:6px"><select id="gd" style="${s}">${D}</select><select id="gm" style="${s}">${M}</select><select id="gy" style="${s}">${Y}</select></div>`}
+function ask(m,cb){window._cb=cb;const e=document.createElement("div");e.className="modal";e.id="mk";e.innerHTML=`<div class="card" style="max-width:380px;margin-top:20vh"><p>${m}</p><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn g s" onclick="$('mk').remove()">Hủy</button><button class="btn s" onclick="$('mk').remove();_cb()">Đồng ý</button></div></div>`;document.body.appendChild(e)}
+function keep(){const y=scrollY;render();scrollTo(0,y)}
+function assign(){
+ const to=[...document.querySelectorAll(".gu:checked")].map(e=>+e.value),title=$("gt").value.trim();
+ if(!to.length||!title){toast("Chọn thôn và nhập tiêu đề nhiệm vụ");return}
+ const p=v=>String(v).padStart(2,"0"),due=$("gy").value+"-"+p($("gm").value)+"-"+p($("gd").value),gid=Date.now();
+ to.forEach(u=>TK.push({id:gid+u,u,title,desc:$("gc").value.trim(),due,pri:$("gp").value,st:"new",res:"",img:[],t:gid}));
+ const ok=sv("tt_tasks",TK);toast(ok?"Đã giao nhiệm vụ cho "+to.length+" thôn ✓":"⚠ Bộ nhớ trình duyệt đầy");keep();
+}
+function delTk(id){ask("Xóa nhiệm vụ này?",()=>{TK=TK.filter(t=>t.id!==id);sv("tt_tasks",TK);toast("Đã xóa");keep()})}
+function viewTk(id){const t=TK.find(x=>x.id===id),m=document.createElement("div");m.className="modal";m.id="mt";m.onclick=e=>{if(e.target===m)m.remove()};
+ m.innerHTML=`<div class="card"><h2>${esc(t.title)}</h2><div class="mu">${esc(U[t.u][1])} · ${esc(U[t.u][0])} · Hạn ${fmtDate(t.due)} · Giao ${fmtD(t.t)}</div><p><span class="pill ${TS[t.st][1]}">${TS[t.st][0]}</span> <span class="pill ${PRI[t.pri][1]}">${PRI[t.pri][0]}</span>${late(t)?` <span class="pill p-er">Quá hạn</span>`:""}</p>${t.desc?`<p style="white-space:pre-wrap">${esc(t.desc)}</p>`:""}<h3>Kết quả thực hiện</h3><p style="white-space:pre-wrap">${t.res?esc(t.res):`<span class="mu">Chưa có cập nhật.</span>`}</p>${(t.img||[]).length?`<div class="imgs">${t.img.map(s=>`<div class="th"><img src="${s}" onclick="zoomS(this.src)"></div>`).join("")}</div>`:""}<div style="text-align:right"><button class="btn s" onclick="$('mt').remove()">Đóng</button></div></div>`;document.body.appendChild(m)}
+function gnV(){
+ const a=TK.filter(t=>gfl===""||t.u===+gfl).sort((x,y)=>y.t-x.t),c=k=>TK.filter(t=>t.st===k).length;
+ return head()+`<div class="wrap"><div class="card"><h2>Giao nhiệm vụ cho Trưởng thôn</h2>
+ <label>Giao cho thôn <button class="btn g s" onclick="document.querySelectorAll('.gu').forEach(e=>e.checked=true)">Chọn tất cả</button></label>
+ <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:2px">${U.map((u,i)=>`<label class="chk" style="margin:0;color:inherit;font-size:14px"><input type="checkbox" class="gu" value="${i}"><span>${esc(u[1])} <span class="mu">· ${esc(u[0])}</span></span></label>`).join("")}</div>
+ <label>Tiêu đề nhiệm vụ</label><input id="gt" placeholder="VD: Rà soát hộ nghèo cuối năm">
+ <label>Nội dung, yêu cầu</label><textarea id="gc"></textarea>
+ <div class="row"><div><label>Hạn hoàn thành</label>${dSel()}</div><div><label>Mức ưu tiên</label><select id="gp">${Object.entries(PRI).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join("")}</select></div></div>
+ <div style="text-align:right;margin-top:12px"><button class="btn" onclick="assign()">📌 Giao nhiệm vụ</button></div></div>
+ <div class="grid"><div class="stat"><span class="mu">Tổng nhiệm vụ</span><b>${TK.length}</b></div><div class="stat"><span class="mu">Hoàn thành</span><b>${c("done")}</b></div><div class="stat"><span class="mu">Đang thực hiện</span><b>${c("doing")}</b></div><div class="stat"><span class="mu">Quá hạn</span><b>${TK.filter(late).length}</b></div></div>
+ <div class="card"><div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap"><h3 style="flex:1;margin:0">Danh sách nhiệm vụ đã giao</h3><div style="min-width:200px"><select onchange="gfl=this.value;render()"><option value="">Tất cả các thôn</option>${U.map((u,i)=>`<option value="${i}" ${gfl===String(i)?"selected":""}>${esc(u[1])}</option>`).join("")}</select></div></div>
+ ${a.length?`<div class="tw"><table><tr><th>Thôn</th><th>Nhiệm vụ</th><th>Hạn</th><th>Ưu tiên</th><th>Trạng thái</th><th></th></tr>${a.map(t=>`<tr><td><b>${esc(U[t.u][1])}</b></td><td>${esc(t.title)}</td><td style="white-space:nowrap${late(t)?";color:var(--er);font-weight:600":""}">${fmtDate(t.due)}</td><td><span class="pill ${PRI[t.pri][1]}">${PRI[t.pri][0]}</span></td><td><span class="pill ${TS[t.st][1]}">${TS[t.st][0]}</span></td><td style="white-space:nowrap"><button class="btn g s" onclick="viewTk(${t.id})">Xem</button> <button class="btn g s" onclick="delTk(${t.id})">Xóa</button></td></tr>`).join("")}</table></div>`:`<p class="mu">Chưa có nhiệm vụ nào.</p>`}</div></div>`;
+}
+function tkImgs(t){return (t.img||[]).map((s,i)=>`<div class="th"><img src="${s}" onclick="zoomS(this.src)"><button onclick="tkDel(${t.id},${i})">×</button></div>`).join("")||`<span class="mu">Chưa có ảnh</span>`}
+function tkSet(id,k,v){TK.find(x=>x.id===id)[k]=v}
+function tkDel(id,i){const t=TK.find(x=>x.id===id);t.img.splice(i,1);$("ti"+id).innerHTML=tkImgs(t)}
+function tkAdd(id,inp){const t=TK.find(x=>x.id===id);t.img=t.img||[];let fs=[...inp.files];inp.value="";const room=4-t.img.length;if(fs.length>room){toast("Tối đa 4 ảnh mỗi nhiệm vụ");fs=fs.slice(0,Math.max(0,room))}
+ Promise.all(fs.map(comp)).then(r=>{const g=r.filter(Boolean);g.forEach(x=>t.img.push(x));$("ti"+id).innerHTML=tkImgs(t);if(g.length)toast("Đã thêm và nén "+g.length+" ảnh")})}
+function tkSave(id){const t=TK.find(x=>x.id===id);t.t2=Date.now();const ok=sv("tt_tasks",TK);toast(ok?"Đã lưu cập nhật ✓":"⚠ Bộ nhớ trình duyệt đầy, hãy bớt ảnh");keep()}
+function nvV(){
+ const a=TK.filter(t=>t.u===me).sort((x,y)=>(x.st==="done")-(y.st==="done")||x.due.localeCompare(y.due));
+ return head()+`<div class="wrap"><div class="card"><h2>Nhiệm vụ được giao</h2><div class="mu">Thôn ${esc(U[me][1])} · ${a.filter(t=>t.st!=="done").length} nhiệm vụ chưa hoàn thành</div></div>${a.length?a.map(t=>`<div class="task"><h3>${esc(t.title)} <span class="pill ${PRI[t.pri][1]}">${PRI[t.pri][0]}</span> ${late(t)?`<span class="pill p-er">Quá hạn</span>`:""}</h3><div class="mu">Hạn: <b>${fmtDate(t.due)}</b> · Giao lúc ${fmtD(t.t)}</div>${t.desc?`<p style="white-space:pre-wrap">${esc(t.desc)}</p>`:""}<div class="row"><div><label>Trạng thái</label><select onchange="tkSet(${t.id},'st',this.value)">${Object.entries(TS).map(([k,v])=>`<option value="${k}" ${t.st===k?"selected":""}>${v[0]}</option>`).join("")}</select></div></div><label>Kết quả thực hiện</label><textarea oninput="tkSet(${t.id},'res',this.value)">${esc(t.res)}</textarea><label>Hình ảnh minh chứng (tối đa 4 ảnh)</label><div class="imgs" id="ti${t.id}">${tkImgs(t)}</div><button class="btn g s" onclick="this.nextElementSibling.click()">📷 Thêm ảnh</button><input type="file" accept="image/*" multiple hidden onchange="tkAdd(${t.id},this)"><div style="text-align:right"><button class="btn s" onclick="tkSave(${t.id})">💾 Lưu cập nhật</button></div></div>`).join(""):`<div class="card mu">Chưa có nhiệm vụ nào được giao.</div>`}</div>`;
+}
 function csv(){
  const rows=[["Thôn","Trưởng thôn","Kỳ","Trạng thái","Lĩnh vực","Mức độ","Số liệu","Nội dung","Kiến nghị"]];
  R.filter(r=>r.p===period).forEach(r=>tasksFor(r.u).forEach(t=>{const d=r.d[t[0]]||{};rows.push([U[r.u][1],U[r.u][0],r.p,r.s==="sent"?"Đã gửi":"Nháp",t[0]+". "+t[1],(ST[d.st]||[""])[0],d.sl||"",d.nd||"",d.kn||""])}));
@@ -217,8 +257,8 @@ function csv(){
 function render(){
  const a=$("app");
  if(me===null)a.innerHTML=loginV();
- else if(me==="admin")a.innerHTML=view==="dash"?dashV():view==="tv"?thonV():adminV();
- else a.innerHTML=view==="form"&&cur?formV():view==="hist"?histV():view==="dash"?dashV():homeV();
+ else if(me==="admin")a.innerHTML=view==="dash"?dashV():view==="tv"?thonV():view==="gn"?gnV():adminV();
+ else a.innerHTML=view==="form"&&cur?formV():view==="hist"?histV():view==="dash"?dashV():view==="nv"?nvV():homeV();
  scrollTo(0,0);
 }
 setTheme();render();

@@ -62,6 +62,7 @@ th{color:var(--mu);font-weight:600;font-size:12px;text-transform:uppercase}
 <div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const U=[["Lê Quốc Hoàng","Bàn Thạch","0973466575"],["Trần Hậu","Vũng Rô","0987079113"],["Trương Thị Ha","Thạch Tuân","0937420425"],["Lữ Thi Minh","Phú Khê Tây","0987982948"],["Đặng Thị Nga","Phú Khê Đông","0399482450"],["Trần Bính Khiêm","Hiệp Đồng","0382206300"],["Lê Thị Kim Ngân","Hảo Sơn","0354321900"],["Huỳnh Thị Nga","Phước Long","0935890735"],["Nguyễn Anh Tuấn","Phước Giang","0978547747"]];
 const ADMIN={u:"admin",p:"112233"};
@@ -104,9 +105,9 @@ function fbInit(){
   const sub=(col,k)=>FB.db.collection(col).onSnapshot({includeMetadataChanges:true},s=>{
    const was=FB.on;if(!s.metadata.fromCache)FB.on=true;
    if(FB.on)FB[k]=s.docs.map(d=>d.data());
-   if(me===null||view==="form"||document.querySelector(".modal"))return;const ae=document.activeElement;if(view==="gn"){const sg=snapG(),f=ae&&ae.id;keep();restG(sg);if(f&&$(f))$(f).focus();return}if(view==="nv"&&ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;keep();
+   if(me===null||view==="form"||document.querySelector(".modal"))return;const ae=document.activeElement;if(view==="gn"){const sg=snapG(),f=ae&&ae.id;keep();restG(sg);if(f&&$(f))$(f).focus();return}if((view==="nv"||view==="cs")&&ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;keep();
   },fbErr);
-  sub("reports","sR");sub("tasks","sT");
+  sub("reports","sR");sub("tasks","sT");sub("policies","sP");
  }catch(e){console.warn(e)}
 }
 function fbSet(col,id,obj){if(!FB.db)return;try{const o=JSON.parse(JSON.stringify(obj));if(JSON.stringify(o).length>950000){toast("⚠ Dung lượng vượt 1MB, chưa đồng bộ được. Hãy bớt ảnh");return}FB.db.collection(col).doc(String(id)).set(o).catch(fbErr)}catch(e){fbErr(e)}}
@@ -158,7 +159,7 @@ function ktDel(i){cur.kt.splice(i,1);$("kt").innerHTML=ktH()}
 function nav(n){const ts=tasksFor(me),i=ts.findIndex(t=>t[0]===act)+n;if(ts[i]){act=ts[i][0];render()}}
 function head(){
  const nm=me==="admin"?"Quản trị UBND xã":U[me][0];
- const tabs=me==="admin"?[["admin","Tổng hợp"],["dash","Dashboard"],["tv","Trưởng thôn"],["gn","Giao nhiệm vụ"],["kt","Cử tri kiến nghị"]]:[["home","Báo cáo"],["nv","Nhiệm vụ"+(n=>n?" ("+n+")":"")(TK.filter(t=>t.u===me&&t.st!=="done").length)],["dash","Dashboard"],["hist","Lịch sử"]];
+ const tabs=me==="admin"?[["admin","Tổng hợp"],["dash","Dashboard"],["tv","Trưởng thôn"],["gn","Giao nhiệm vụ"],["kt","Cử tri kiến nghị"],["cs","Chính sách"]]:[["home","Báo cáo"],["nv","Nhiệm vụ"+(n=>n?" ("+n+")":"")(TK.filter(t=>t.u===me&&t.st!=="done").length)],["cs","Chính sách"],["dash","Dashboard"],["hist","Lịch sử"]];
  return `<div class="top noprint"><b>📋 Báo cáo Trưởng thôn</b><div class="nav">${tabs.map(t=>`<button class="${view===t[0]||(view==="form"&&t[0]==="home")?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}</div><span class="sp"></span><span class="mu" style="color:#e5fff4">${esc(nm)}${me==="admin"?"":" · "+esc(U[me][1])}</span><span class="mu" style="color:#e5fff4;font-size:12px" title="${FB.on?"Dữ liệu đồng bộ qua Firebase":"Chưa kết nối Firebase, dữ liệu chỉ lưu trên máy này"}">${FB.on?"☁ Đã đồng bộ":"⚠ Chưa kết nối"}</span><button class="ib" onclick="toggleTheme()" title="Giao diện">🌓</button><button class="ib" onclick="logout()">Đăng xuất</button></div>`;
 }
 function loginV(){
@@ -285,6 +286,54 @@ function ktV(){
  <div class="grid"><div class="stat"><span class="mu">Tổng kiến nghị</span><b>${all.length}</b></div><div class="stat"><span class="mu">Thôn có kiến nghị</span><b>${new Set(all.map(x=>x.r.u)).size}</b></div></div>
  <div class="card">${a.length?`<div class="tw"><table><tr><th>Thôn</th><th>Nội dung kiến nghị</th><th>Báo cáo</th><th></th></tr>${a.map(x=>`<tr><td style="white-space:nowrap"><b>${esc(U[x.r.u][1])}</b><div class="mu">${esc(U[x.r.u][0])}</div></td><td style="white-space:pre-wrap;min-width:220px">${esc(x.k.nd)}</td><td><span class="pill ${x.r.s==="sent"?"p-ok":"p-dr"}">${x.r.s==="sent"?"Đã gửi":"Nháp"}</span></td><td><button class="btn g s" onclick="show(${x.r.id})">Xem báo cáo</button></td></tr>`).join("")}</table></div>`:`<p class="mu">Không có kiến nghị nào trong kỳ này.</p>`}</div></div>`;
 }
+const CS=[["hn","Hộ nghèo","🏚️",[["pl","Phân loại",["Hộ nghèo","Hộ cận nghèo"]],["nk","Số nhân khẩu"],["nn","Nguyên nhân nghèo"]]],["cs","Hộ chính sách","📑",[["dt","Đối tượng chính sách"],["nk","Số nhân khẩu"]]],["bt","Đối tượng bảo trợ","🤝",[["nh","Nhóm đối tượng",["Người cao tuổi","Người khuyết tật","Trẻ mồ côi","Đơn thân nuôi con","Khác"]],["mt","Mức trợ cấp (đ/tháng)"]]],["cc","Người có công","🎖️",[["dien","Diện người có công",["Liệt sĩ","Thương binh","Bệnh binh","Anh hùng LLVT","Hoạt động kháng chiến","Thân nhân liệt sĩ","Khác"]],["mt","Mức trợ cấp (đ/tháng)"]]]];
+const CB=[["hoten","Họ và tên"],["ns","Năm sinh"],["gt","Giới tính",["Nam","Nữ"]],["cccd","CCCD"],["dc","Địa chỉ / Tổ"]],CE=[["gc","Ghi chú"]];
+let csK="hn",csQ="",csT="",PL=ld("tt_cs",[]);
+function csRows(){const adm=me==="admin",q=norm(csQ);return PL.filter(p=>p.k===csK&&(adm?(csT===""||p.u===+csT):p.u===me)&&(!q||norm(Object.values(p).join(" ")).includes(q)))}
+function csTab(){
+ const c=CS.find(x=>x[0]===csK),adm=me==="admin",cols=[...CB,...c[3],...CE],a=csRows();
+ return a.length?`<div class="tw"><table><tr><th>STT</th>${adm?"<th>Thôn</th>":""}${cols.map(f=>`<th>${f[1]}</th>`).join("")}${adm?"":"<th></th>"}</tr>${a.map((p,i)=>`<tr><td>${i+1}</td>${adm?`<td><b>${esc(U[p.u][1])}</b></td>`:""}${cols.map(f=>`<td>${esc(p[f[0]])}</td>`).join("")}${adm?"":`<td style="white-space:nowrap"><button class="btn g s" onclick="csForm(${p.id})">Sửa</button> <button class="btn g s" onclick="csDel(${p.id})">Xóa</button></td>`}</tr>`).join("")}</table></div>`:`<p class="mu">Chưa có dữ liệu. Bấm “Thêm” hoặc “Nhập Excel”.</p>`}
+function csV(){
+ const adm=me==="admin",cnt=k=>PL.filter(p=>p.k===k&&(adm||p.u===me)).length;
+ return head()+`<div class="wrap"><div class="card"><h2>Chính sách</h2><div class="mu">${adm?"Tổng hợp toàn bộ 9 thôn":"Thôn "+esc(U[me][1])} · danh sách đối tượng chính sách</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${CS.map(c=>`<button class="btn ${c[0]===csK?"":"g"} s" onclick="csK='${c[0]}';csQ='';render()">${c[2]} ${c[1]} (${cnt(c[0])})</button>`).join("")}</div></div>
+ ${adm?`<div class="card tw"><h3>Tổng hợp theo thôn</h3><table><tr><th>Thôn</th>${CS.map(c=>`<th>${c[1]}</th>`).join("")}</tr>${U.map((u,i)=>`<tr><td><b>${esc(u[1])}</b></td>${CS.map(c=>`<td>${PL.filter(p=>p.u===i&&p.k===c[0]).length}</td>`).join("")}</tr>`).join("")}</table></div>`:""}
+ <div class="card"><h3>${CS.find(x=>x[0]===csK)[1]}</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px"><input style="flex:1;min-width:180px" placeholder="🔍 Tìm kiếm..." value="${esc(csQ)}" oninput="csQ=this.value;$('cst').innerHTML=csTab()">${adm?`<select style="width:auto" onchange="csT=this.value;render()"><option value="">Tất cả thôn</option>${U.map((u,i)=>`<option value="${i}" ${csT===String(i)?"selected":""}>${esc(u[1])}</option>`).join("")}</select>`:`<button class="btn s" onclick="csForm(0)">➕ Thêm</button><button class="btn g s" onclick="this.nextElementSibling.click()">⬆ Nhập Excel</button><input type="file" accept=".xlsx,.xls,.csv" hidden onchange="csImp(this)"><button class="btn g s" onclick="csExp(true)">📄 Tải file mẫu</button>`}<button class="btn g s" onclick="csExp()">⬇ Xuất Excel</button></div><div id="cst">${csTab()}</div></div></div>`;
+}
+function csForm(id){
+ const c=CS.find(x=>x[0]===csK),p=id?PL.find(x=>x.id===id):{},F=[...CB,...c[3],...CE],m=document.createElement("div");
+ m.className="modal";m.id="mc";m.onclick=e=>{if(e.target===m)m.remove()};
+ m.innerHTML=`<div class="card"><h3>${id?"Sửa":"Thêm"} · ${c[1]}</h3><div class="row">${F.map(f=>`<div><label>${f[1]}${f[0]==="hoten"?" *":""}</label>${f[2]?`<select id="cf_${f[0]}"><option value=""></option>${f[2].map(o=>`<option ${p[f[0]]===o?"selected":""}>${o}</option>`).join("")}</select>`:`<input id="cf_${f[0]}" value="${esc(p[f[0]])}">`}</div>`).join("")}</div><div style="text-align:right;margin-top:14px;display:flex;gap:8px;justify-content:flex-end"><button class="btn g s" onclick="$('mc').remove()">Hủy</button><button class="btn s" onclick="csSave(${id||0})">Lưu</button></div></div>`;
+ document.body.appendChild(m);
+}
+function csPut(r){PL=PL.filter(p=>p.id!==r.id).concat(r);if(FB.sP)FB.sP=FB.sP.filter(p=>p.id!==r.id).concat(r);fbSet("policies",r.id,r)}
+function csSave(id){
+ const c=CS.find(x=>x[0]===csK),r={id:id||Date.now(),u:me,k:csK,t:Date.now()};
+ [...CB,...c[3],...CE].forEach(f=>r[f[0]]=($("cf_"+f[0]).value||"").trim());
+ if(!r.hoten){toast("Vui lòng nhập họ và tên");return}
+ csPut(r);const ok=sv("tt_cs",PL);$("mc").remove();toast(ok?"Đã lưu ✓":"⚠ Bộ nhớ trình duyệt đầy");keep();
+}
+function csDel(id){ask("Xóa người này khỏi danh sách?",()=>{PL=PL.filter(p=>p.id!==id);if(FB.sP)FB.sP=FB.sP.filter(p=>p.id!==id);sv("tt_cs",PL);fbDel("policies",id);toast("Đã xóa");keep()})}
+function csExp(tpl){
+ if(!window.XLSX){toast("Không tải được thư viện Excel, cần kết nối mạng");return}
+ const c=CS.find(x=>x[0]===csK),adm=me==="admin",cols=[...(adm?[["thon","Thôn"]]:[]),...CB,...c[3],...CE],H=["STT",...cols.map(f=>f[1])];
+ const rows=tpl?[]:csRows().map((p,i)=>[i+1,...cols.map(f=>f[0]==="thon"?U[p.u][1]:(p[f[0]]??""))]);
+ const ws=XLSX.utils.aoa_to_sheet([H,...rows]);ws["!cols"]=H.map(h=>({wch:Math.max(10,h.length+4)}));
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,c[1].slice(0,31));
+ XLSX.writeFile(wb,(tpl?"mau-":"")+"chinh-sach-"+c[0]+"-"+(adm?"tat-ca":norm(U[me][1]).replace(/ /g,"-"))+".xlsx");toast(tpl?"Đã tải file mẫu":"Đã xuất Excel");
+}
+function csImp(inp){
+ const f=inp.files[0];inp.value="";if(!f)return;
+ if(!window.XLSX){toast("Không tải được thư viện Excel, cần kết nối mạng");return}
+ const rd=new FileReader();
+ rd.onload=()=>{try{
+  const wb=XLSX.read(rd.result,{type:"array"}),js=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""});
+  const c=CS.find(x=>x[0]===csK),cols=[...CB,...c[3],...CE];let n=0;
+  js.forEach(row=>{const r={id:Date.now()+n,u:me,k:csK,t:Date.now()};cols.forEach(f=>r[f[0]]=String(row[f[1]]??"").trim());if(!r.hoten)return;
+   const ex=r.cccd&&PL.find(p=>p.u===me&&p.k===csK&&p.cccd===r.cccd);if(ex)r.id=ex.id;csPut(r);n++});
+  sv("tt_cs",PL);toast("Đã nhập "+n+" dòng từ Excel");keep();
+ }catch(e){console.warn(e);toast("Không đọc được file Excel")}};
+ rd.readAsArrayBuffer(f);
+}
 function csv(){
  const rows=[["Thôn","Trưởng thôn","Kỳ","Trạng thái","Lĩnh vực","Mức độ","Số liệu","Nội dung","Kiến nghị"]];
  R.filter(r=>r.p===period).forEach(r=>tasksFor(r.u).forEach(t=>{const d=r.d[t[0]]||{};rows.push([U[r.u][1],U[r.u][0],r.p,r.s==="sent"?"Đã gửi":"Nháp",t[0]+". "+t[1],(ST[d.st]||[""])[0],d.sl||"",d.nd||"",d.kn||""])}));
@@ -293,10 +342,10 @@ function csv(){
  const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(c);a.download="bao-cao-"+period+".csv";a.click();
 }
 function render(){
- if(FB.sR)R=FB.sR;mergeT();const a=$("app");
+ if(FB.sR)R=FB.sR;if(FB.sP)PL=FB.sP;mergeT();const a=$("app");
  if(me===null)a.innerHTML=loginV();
- else if(me==="admin")a.innerHTML=view==="dash"?dashV():view==="tv"?thonV():view==="gn"?gnV():view==="kt"?ktV():adminV();
- else a.innerHTML=view==="form"&&cur?formV():view==="hist"?histV():view==="dash"?dashV():view==="nv"?nvV():homeV();
+ else if(me==="admin")a.innerHTML=view==="dash"?dashV():view==="tv"?thonV():view==="gn"?gnV():view==="kt"?ktV():view==="cs"?csV():adminV();
+ else a.innerHTML=view==="form"&&cur?formV():view==="hist"?histV():view==="dash"?dashV():view==="nv"?nvV():view==="cs"?csV():homeV();
  scrollTo(0,0);
 }
 setTheme();render();fbInit();

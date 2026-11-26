@@ -297,7 +297,7 @@ function csV(){
  const adm=me==="admin",cnt=k=>PL.filter(p=>p.k===k&&(adm||p.u===me)).length;
  return head()+`<div class="wrap"><div class="card"><h2>Chính sách</h2><div class="mu">${adm?"Tổng hợp toàn bộ 9 thôn":"Thôn "+esc(U[me][1])} · danh sách đối tượng chính sách</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${CS.map(c=>`<button class="btn ${c[0]===csK?"":"g"} s" onclick="csK='${c[0]}';csQ='';render()">${c[2]} ${c[1]} (${cnt(c[0])})</button>`).join("")}</div></div>
  ${adm?`<div class="card tw"><h3>Tổng hợp theo thôn</h3><table><tr><th>Thôn</th>${CS.map(c=>`<th>${c[1]}</th>`).join("")}</tr>${U.map((u,i)=>`<tr><td><b>${esc(u[1])}</b></td>${CS.map(c=>`<td>${PL.filter(p=>p.u===i&&p.k===c[0]).length}</td>`).join("")}</tr>`).join("")}</table></div>`:""}
- <div class="card"><h3>${CS.find(x=>x[0]===csK)[1]}</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px"><input style="flex:1;min-width:180px" placeholder="🔍 Tìm kiếm..." value="${esc(csQ)}" oninput="csQ=this.value;$('cst').innerHTML=csTab()">${adm?`<select style="width:auto" onchange="csT=this.value;render()"><option value="">Tất cả thôn</option>${U.map((u,i)=>`<option value="${i}" ${csT===String(i)?"selected":""}>${esc(u[1])}</option>`).join("")}</select>`:`<button class="btn s" onclick="csForm(0)">➕ Thêm</button><button class="btn g s" onclick="this.nextElementSibling.click()">⬆ Nhập Excel</button><input type="file" accept=".xlsx,.xls,.csv" hidden onchange="csImp(this)"><button class="btn g s" onclick="csExp(true)">📄 Tải file mẫu</button>`}<button class="btn g s" onclick="csExp()">⬇ Xuất Excel</button></div><div id="cst">${csTab()}</div></div></div>`;
+ <div class="card"><h3>${CS.find(x=>x[0]===csK)[1]}</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px"><input style="flex:1;min-width:180px" placeholder="🔍 Tìm kiếm..." value="${esc(csQ)}" oninput="csQ=this.value;$('cst').innerHTML=csTab()">${adm?`<select style="width:auto" onchange="csT=this.value;render()"><option value="">Tất cả thôn</option>${U.map((u,i)=>`<option value="${i}" ${csT===String(i)?"selected":""}>${esc(u[1])}</option>`).join("")}</select>`:`<button class="btn s" onclick="csForm(0)">➕ Thêm</button><button class="btn g s" onclick="this.nextElementSibling.click()">⬆ Nhập Excel</button><input type="file" accept=".xlsx,.xls,.csv" hidden onchange="csImp(this)"><button class="btn g s" onclick="csExp(true)">📄 Tải file mẫu</button>`}<button class="btn g s" onclick="csExp()">⬇ Xuất Excel (4 nhóm)</button></div><div id="cst">${csTab()}</div></div></div>`;
 }
 function csForm(id){
  const c=CS.find(x=>x[0]===csK),p=id?PL.find(x=>x.id===id):{},F=[...CB,...c[3],...CE],m=document.createElement("div");
@@ -313,24 +313,40 @@ function csSave(id){
  csPut(r);const ok=sv("tt_cs",PL);$("mc").remove();toast(ok?"Đã lưu ✓":"⚠ Bộ nhớ trình duyệt đầy");keep();
 }
 function csDel(id){ask("Xóa người này khỏi danh sách?",()=>{PL=PL.filter(p=>p.id!==id);if(FB.sP)FB.sP=FB.sP.filter(p=>p.id!==id);sv("tt_cs",PL);fbDel("policies",id);toast("Đã xóa");keep()})}
+const CM={hn:{pl:"x1",nk:"nk",nn:"x2"},cs:{dt:"x2",nk:"nk"},bt:{nh:"x1",mt:"mt"},cc:{dien:"x1",mt:"mt"}};
+const UC=[["k","Nhóm chính sách"],...CB,["x1","Phân loại / Diện / Nhóm đối tượng"],["nk","Số nhân khẩu"],["mt","Mức trợ cấp (đ/tháng)"],["x2","Nguyên nhân nghèo / Đối tượng chính sách"],...CE];
+function toU(p){const o={k:CS.find(c=>c[0]===p.k)[1]};["hoten","ns","gt","cccd","dc","gc"].forEach(f=>o[f]=p[f]||"");for(const f in CM[p.k])o[CM[p.k][f]]=p[f]||"";return o}
 function csExp(tpl){
  if(!window.XLSX){toast("Không tải được thư viện Excel, cần kết nối mạng");return}
- const c=CS.find(x=>x[0]===csK),adm=me==="admin",cols=[...(adm?[["thon","Thôn"]]:[]),...CB,...c[3],...CE],H=["STT",...cols.map(f=>f[1])];
- const rows=tpl?[]:csRows().map((p,i)=>[i+1,...cols.map(f=>f[0]==="thon"?U[p.u][1]:(p[f[0]]??""))]);
- const ws=XLSX.utils.aoa_to_sheet([H,...rows]);ws["!cols"]=H.map(h=>({wch:Math.max(10,h.length+4)}));
- const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,c[1].slice(0,31));
- XLSX.writeFile(wb,(tpl?"mau-":"")+"chinh-sach-"+c[0]+"-"+(adm?"tat-ca":norm(U[me][1]).replace(/ /g,"-"))+".xlsx");toast(tpl?"Đã tải file mẫu":"Đã xuất Excel");
+ const adm=me==="admin",cols=[...(adm?[["thon","Thôn"]]:[]),...UC],H=["STT",...cols.map(f=>f[1])],ord=k=>CS.findIndex(c=>c[0]===k);
+ const src=tpl?[]:PL.filter(p=>adm?(csT===""||p.u===+csT):p.u===me).sort((a,b)=>ord(a.k)-ord(b.k)||(adm?a.u-b.u:0));
+ const rows=src.map((p,i)=>{const o=toU(p);return[i+1,...cols.map(f=>f[0]==="thon"?U[p.u][1]:(o[f[0]]??""))]});
+ const ws=XLSX.utils.aoa_to_sheet([H,...rows]);ws["!cols"]=H.map(h=>({wch:Math.max(12,h.length+4)}));
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Danh sách");
+ if(tpl){
+  const ex=[{k:"hn",hoten:"Nguyễn Văn A",ns:"1975",gt:"Nam",cccd:"049075000001",dc:"Tổ 1",pl:"Hộ nghèo",nk:"4",nn:"Thiếu vốn sản xuất"},{k:"cs",hoten:"Trần Thị B",ns:"1960",gt:"Nữ",dc:"Tổ 2",dt:"Gia đình chính sách",nk:"3"},{k:"bt",hoten:"Lê Văn C",ns:"1945",gt:"Nam",dc:"Tổ 3",nh:"Người cao tuổi",mt:"500000"},{k:"cc",hoten:"Phạm Thị D",ns:"1950",gt:"Nữ",dc:"Tổ 1",dien:"Thân nhân liệt sĩ",mt:"2000000"}].map(p=>toU(p));
+  const g=[["HƯỚNG DẪN SỬ DỤNG FILE MẪU (dùng chung cho cả 4 nhóm)"],["1. Nhập mỗi người một dòng ở sheet “Danh sách”, xóa các dòng ví dụ bên dưới nếu copy sang."],["2. Cột “Nhóm chính sách” (bắt buộc) chọn một trong: "+CS.map(c=>c[1]).join(" | ")+". Để trống thì app tính theo nhóm đang mở."],["3. Cột “Họ và tên” bắt buộc. Các cột khác điền khi có."],...CS.map(c=>["• "+c[1]+": dùng cột "+c[3].map(f=>"“"+UC.find(u=>u[0]===CM[c[0]][f[0]])[1]+"”"+(f[2]?" ("+f[2].join(" / ")+")":"")).join(", ")]),["4. Dòng trùng CCCD (hoặc cùng họ tên và năm sinh nếu không có CCCD) với người đã có trong cùng nhóm sẽ được cập nhật, không tạo trùng."],[""],["VÍ DỤ"],H.slice(0),...ex.map((o,i)=>[i+1,...UC.map(f=>o[f[0]]||"")])];
+  const gs=XLSX.utils.aoa_to_sheet(g);gs["!cols"]=[{wch:30}].concat(H.slice(1).map(h=>({wch:Math.max(12,h.length+4)})));XLSX.utils.book_append_sheet(wb,gs,"Hướng dẫn");
+ }
+ XLSX.writeFile(wb,tpl?"mau-chinh-sach.xlsx":"chinh-sach-"+(adm?"tat-ca":norm(U[me][1]).replace(/ /g,"-"))+".xlsx");toast(tpl?"Đã tải file mẫu":"Đã xuất Excel");
 }
 function csImp(inp){
  const f=inp.files[0];inp.value="";if(!f)return;
  if(!window.XLSX){toast("Không tải được thư viện Excel, cần kết nối mạng");return}
  const rd=new FileReader();
  rd.onload=()=>{try{
-  const wb=XLSX.read(rd.result,{type:"array"}),js=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""});
-  const c=CS.find(x=>x[0]===csK),cols=[...CB,...c[3],...CE];let n=0;
-  js.forEach(row=>{const r={id:Date.now()+n,u:me,k:csK,t:Date.now()};cols.forEach(f=>r[f[0]]=String(row[f[1]]??"").trim());if(!r.hoten)return;
-   const ex=r.cccd&&PL.find(p=>p.u===me&&p.k===csK&&p.cccd===r.cccd);if(ex)r.id=ex.id;csPut(r);n++});
-  sv("tt_cs",PL);toast("Đã nhập "+n+" dòng từ Excel");keep();
+  const wb=XLSX.read(rd.result,{type:"array"}),js=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""}),L={};
+  UC.forEach(f=>L[f[0]]=f[1]);let n=0,bad=0;
+  js.forEach((row,i)=>{
+   const v=k=>String(row[L[k]]??"").trim(),hoten=v("hoten");if(!hoten)return;
+   const g=norm(v("k")),c=g?CS.find(c=>norm(c[1]).includes(g)||g.includes(norm(c[1]))):CS.find(c=>c[0]===csK);
+   if(!c){bad++;return}
+   const r={id:Date.now()+i,u:me,k:c[0],t:Date.now()};
+   ["hoten","ns","gt","cccd","dc","gc"].forEach(k=>r[k]=v(k));
+   for(const k in CM[c[0]])r[k]=v(CM[c[0]][k]);
+   const ex=PL.find(p=>p.u===me&&p.k===r.k&&(r.cccd?p.cccd===r.cccd:(!p.cccd&&norm(p.hoten)===norm(r.hoten)&&(p.ns||"")===r.ns)));if(ex)r.id=ex.id;
+   csPut(r);n++});
+  sv("tt_cs",PL);toast("Đã nhập "+n+" dòng"+(bad?", bỏ qua "+bad+" dòng sai nhóm":""));keep();
  }catch(e){console.warn(e);toast("Không đọc được file Excel")}};
  rd.readAsArrayBuffer(f);
 }

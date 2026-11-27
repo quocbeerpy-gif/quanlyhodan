@@ -286,7 +286,15 @@ function ktV(){
  <div class="grid"><div class="stat"><span class="mu">Tổng kiến nghị</span><b>${all.length}</b></div><div class="stat"><span class="mu">Thôn có kiến nghị</span><b>${new Set(all.map(x=>x.r.u)).size}</b></div></div>
  <div class="card">${a.length?`<div class="tw"><table><tr><th>Thôn</th><th>Nội dung kiến nghị</th><th>Báo cáo</th><th></th></tr>${a.map(x=>`<tr><td style="white-space:nowrap"><b>${esc(U[x.r.u][1])}</b><div class="mu">${esc(U[x.r.u][0])}</div></td><td style="white-space:pre-wrap;min-width:220px">${esc(x.k.nd)}</td><td><span class="pill ${x.r.s==="sent"?"p-ok":"p-dr"}">${x.r.s==="sent"?"Đã gửi":"Nháp"}</span></td><td><button class="btn g s" onclick="show(${x.r.id})">Xem báo cáo</button></td></tr>`).join("")}</table></div>`:`<p class="mu">Không có kiến nghị nào trong kỳ này.</p>`}</div></div>`;
 }
-const CS=[["hn","Hộ nghèo","🏚️",[["pl","Phân loại",["Hộ nghèo","Hộ cận nghèo"]],["nk","Số nhân khẩu"],["nn","Nguyên nhân nghèo"]]],["cs","Hộ chính sách","📑",[["dt","Đối tượng chính sách"],["nk","Số nhân khẩu"]]],["bt","Đối tượng bảo trợ","🤝",[["nh","Nhóm đối tượng",["Người cao tuổi","Người khuyết tật","Trẻ mồ côi","Đơn thân nuôi con","Khác"]],["mt","Mức trợ cấp (đ/tháng)"]]],["cc","Người có công","🎖️",[["dien","Diện người có công",["Liệt sĩ","Thương binh","Bệnh binh","Anh hùng LLVT","Hoạt động kháng chiến","Thân nhân liệt sĩ","Khác"]],["mt","Mức trợ cấp (đ/tháng)"]]]];
+const CS=[["hn","Hộ nghèo","🏚️",[["pl","Phân loại",["Hộ nghèo","Hộ cận nghèo"]],["nk","Số nhân khẩu"],["nn","Nguyên nhân nghèo"]]],["cs","Hộ chính sách","📑",[["dt","Đối tượng chính sách"],["nk","Số nhân khẩu"]]],["bt","Đối tượng bảo trợ","🤝",[["nh","Nhóm đối tượng",["Người cao tuổi","Người khuyết tật","Trẻ mồ côi","Đơn thân nuôi con","Khác"]],["mt","Mức trợ cấp (đ/tháng)"]]],["cc","Người có công","🎖️",[["dien","Diện người có công",["Liệt sĩ","Thương binh","Bệnh binh","Anh hùng LLVT","Hoạt động kháng chiến","Thân nhân liệt sĩ","Khác"]],["mt","Mức trợ cấp (đ/tháng)"]]],
+["tb","TB - Người hưởng chính sách TB","🎗️",[["tl","Tỷ lệ suy giảm KNLĐ (%)"],["mt","Mức trợ cấp (đ/tháng)"]]],
+["tbb","Thương binh loại B","🏅",[["tl","Tỷ lệ suy giảm KNLĐ (%)"],["mt","Mức trợ cấp (đ/tháng)"]]],
+["bb","Bệnh binh","🪖",[["tl","Tỷ lệ suy giảm KNLĐ (%)"],["mt","Mức trợ cấp (đ/tháng)"]]],
+["cd","Người HĐKC và con đẻ bị nhiễm CĐHH","☣️",[["dt","Đối tượng",["Người hoạt động kháng chiến","Con đẻ"]],["tl","Tỷ lệ suy giảm KNLĐ (%)"],["mt","Mức trợ cấp (đ/tháng)"]]],
+["ts","Trợ cấp tiền tuất liệt sĩ","🕯️",[["tn","Họ tên liệt sĩ"],["qh","Quan hệ với liệt sĩ",["Cha","Mẹ","Vợ","Chồng","Con","Khác"]],["mt","Mức trợ cấp (đ/tháng)"]]],
+["td","Người KĐCM hoặc HĐKC bị bắt tù đày","⛓️",[["tg","Thời gian bị bắt tù đày"],["mt","Mức trợ cấp (đ/tháng)"]]],
+["qn","Quân nhân xuất ngũ","🎖️",[["cb","Cấp bậc"],["nnn","Năm nhập ngũ"],["nx","Năm xuất ngũ"]]],
+["nct","Người cao tuổi > 80 tuổi","👴",[["cdh","Chế độ đang hưởng",["Trợ cấp hàng tháng","Quà chúc thọ","Bảo hiểm y tế","Khác"]],["mt","Mức trợ cấp (đ/tháng)"]]]];
 const CB=[["hoten","Họ và tên"],["ns","Năm sinh"],["gt","Giới tính",["Nam","Nữ"]],["cccd","CCCD"],["dc","Địa chỉ / Tổ"]],CE=[["gc","Ghi chú"]];
 let csK="hn",csQ="",csT="",PL=ld("tt_cs",[]);
 function csRows(){const adm=me==="admin",q=norm(csQ);return PL.filter(p=>p.k===csK&&(adm?(csT===""||p.u===+csT):p.u===me)&&(!q||norm(Object.values(p).join(" ")).includes(q)))}
@@ -313,8 +321,8 @@ function csSave(id){
  csPut(r);const ok=sv("tt_cs",PL);$("mc").remove();toast(ok?"Đã lưu ✓":"⚠ Bộ nhớ trình duyệt đầy");keep();
 }
 function csDel(id){ask("Xóa người này khỏi danh sách?",()=>{PL=PL.filter(p=>p.id!==id);if(FB.sP)FB.sP=FB.sP.filter(p=>p.id!==id);sv("tt_cs",PL);fbDel("policies",id);toast("Đã xóa");keep()})}
-const CM={hn:{pl:"x1",nk:"nk",nn:"x2"},cs:{dt:"x2",nk:"nk"},bt:{nh:"x1",mt:"mt"},cc:{dien:"x1",mt:"mt"}};
-const UC=[["k","Nhóm chính sách"],...CB,["x1","Phân loại / Diện / Nhóm đối tượng"],["nk","Số nhân khẩu"],["mt","Mức trợ cấp (đ/tháng)"],["x2","Nguyên nhân nghèo / Đối tượng chính sách"],...CE];
+const CM={hn:{pl:"x1",nk:"nk",nn:"x2"},cs:{dt:"x2",nk:"nk"},bt:{nh:"x1",mt:"mt"},cc:{dien:"x1",mt:"mt"},tb:{tl:"tl",mt:"mt"},tbb:{tl:"tl",mt:"mt"},bb:{tl:"tl",mt:"mt"},cd:{dt:"x1",tl:"tl",mt:"mt"},ts:{tn:"tn",qh:"qh",mt:"mt"},td:{tg:"tg",mt:"mt"},qn:{cb:"cb",nnn:"nnn",nx:"nx"},nct:{cdh:"x1",mt:"mt"}};
+const UC=[["k","Nhóm chính sách"],...CB,["x1","Phân loại / Diện / Nhóm đối tượng"],["nk","Số nhân khẩu"],["tl","Tỷ lệ suy giảm KNLĐ (%)"],["mt","Mức trợ cấp (đ/tháng)"],["tn","Họ tên liệt sĩ"],["qh","Quan hệ với liệt sĩ"],["tg","Thời gian bị bắt tù đày"],["cb","Cấp bậc"],["nnn","Năm nhập ngũ"],["nx","Năm xuất ngũ"],["x2","Nguyên nhân nghèo / Đối tượng chính sách"],...CE];
 function toU(p){const o={k:CS.find(c=>c[0]===p.k)[1]};["hoten","ns","gt","cccd","dc","gc"].forEach(f=>o[f]=p[f]||"");for(const f in CM[p.k])o[CM[p.k][f]]=p[f]||"";return o}
 function csExp(tpl){
  if(!window.XLSX){toast("Không tải được thư viện Excel, cần kết nối mạng");return}
@@ -339,7 +347,7 @@ function csImp(inp){
   UC.forEach(f=>L[f[0]]=f[1]);let n=0,bad=0;
   js.forEach((row,i)=>{
    const v=k=>String(row[L[k]]??"").trim(),hoten=v("hoten");if(!hoten)return;
-   const g=norm(v("k")),c=g?CS.find(c=>norm(c[1]).includes(g)||g.includes(norm(c[1]))):CS.find(c=>c[0]===csK);
+   const g=norm(v("k")),c=g?(CS.find(c=>norm(c[1])===g)||CS.find(c=>norm(c[1]).includes(g)||g.includes(norm(c[1])))):CS.find(c=>c[0]===csK);
    if(!c){bad++;return}
    const r={id:Date.now()+i,u:me,k:c[0],t:Date.now()};
    ["hoten","ns","gt","cccd","dc","gc"].forEach(k=>r[k]=v(k));
